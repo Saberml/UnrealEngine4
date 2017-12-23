@@ -470,6 +470,9 @@ public:
 
 	ENGINE_API virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
 
+	TArray< FRepParentCmd >		Parents;
+	TArray< FRepLayoutCmd >		Cmds;
+
 private:
 	void RebuildConditionalProperties( FRepState * RESTRICT	RepState, const FRepChangedPropertyTracker& ChangedTracker, const FReplicationFlags& RepFlags ) const;
 
@@ -613,10 +616,7 @@ private:
 	void ConstructProperties( TArray< uint8, TAlignedHeapAllocator<16> >& ShadowData ) const;
 	void InitProperties( TArray< uint8, TAlignedHeapAllocator<16> >& ShadowData, uint8* Src ) const;
 	void DestructProperties( FRepStateStaticBuffer& RepStateStaticBuffer ) const;
-
-	TArray< FRepParentCmd >		Parents;
-	TArray< FRepLayoutCmd >		Cmds;
-
+	
 	TArray< FHandleToCmdIndex >	BaseHandleToCmdIndex;		// Converts a relative handle to the appropriate index into the Cmds array
 
 	int32						FirstNonCustomParent;

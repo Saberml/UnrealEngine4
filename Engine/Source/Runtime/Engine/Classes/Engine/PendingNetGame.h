@@ -16,7 +16,7 @@ class UNetDriver;
 struct FWorldContext;
 
 UCLASS(customConstructor, transient)
-class UPendingNetGame :
+class ENGINE_API UPendingNetGame :
 	public UObject,
 	public FNetworkNotify
 {
@@ -72,7 +72,7 @@ public:
 	// Constructor.
 	UPendingNetGame(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	void	InitNetDriver();
+	virtual void InitNetDriver();
 
 	/**
 	 * Send the packet for triggering the initial join

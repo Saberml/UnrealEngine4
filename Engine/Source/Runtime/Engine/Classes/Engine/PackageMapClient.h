@@ -171,7 +171,7 @@ public:
 	bool			IsNetGUIDAuthority() const;
 	FNetworkGUID	GetOrAssignNetGUID( const UObject* Object, const TWeakObjectPtr<UObject>* WeakObjectPtr=nullptr /** Optional: pass in existing weakptr to prevent this function from constructing one internally */ );
 	FNetworkGUID	GetNetGUID( const UObject* Object ) const;
-	FNetworkGUID	AssignNewNetGUID_Server( const UObject* Object );
+	virtual FNetworkGUID	AssignNewNetGUID_Server( const UObject* Object );
 	void			RegisterNetGUID_Internal( const FNetworkGUID& NetGUID, const FNetGuidCacheObject& CacheObject );
 	void			RegisterNetGUID_Server( const FNetworkGUID& NetGUID, const UObject* Object );
 	void			RegisterNetGUID_Client( const FNetworkGUID& NetGUID, const UObject* Object );

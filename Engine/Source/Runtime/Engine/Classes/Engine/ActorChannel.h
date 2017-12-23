@@ -130,10 +130,10 @@ public:
 	AActor* GetActor() {return Actor;}
 
 	/** Replicate this channel's actor differences. */
-	bool ReplicateActor();
+	virtual bool ReplicateActor();
 
 	/** Allocate replication tables for the actor channel. */
-	void SetChannelActor( AActor* InActor );
+	virtual void SetChannelActor( AActor* InActor );
 
 	virtual void NotifyActorChannelOpen(AActor* InActor, FInBunch& InBunch);
 

@@ -154,7 +154,7 @@ struct ENGINE_API FPacketSimulationSettings
 //
 // Priority sortable list.
 //
-struct FActorPriority
+struct ENGINE_API FActorPriority
 {
 	int32						Priority;	// Update priority, higher = more important.
 	
@@ -422,7 +422,7 @@ public:
 	TArray< TWeakObjectPtr<AActor> >	LastSentActors;
 	TArray< TWeakObjectPtr<AActor> >	LastNonRelevantActors;
 
-	void						PrintDebugRelevantActors();
+	ENGINE_API void						PrintDebugRelevantActors();
 	
 	/** The server adds an entry into this map for every actor that is destroyed that join-in-progress
 	 *  clients need to know about, that is, startup actors. Also, individual UNetConnections
@@ -517,7 +517,7 @@ public:
 	 */
 	ENGINE_API virtual bool Exec(UWorld* InWorld, const TCHAR* Cmd, FOutputDevice& Ar=*GLog) override;
 
-	ENGINE_API ENetMode	GetNetMode() const;
+	ENGINE_API virtual ENetMode	GetNetMode() const;
 
 	//~ End FExec Interface.
 
@@ -841,8 +841,8 @@ protected:
 	/**
 	* Helper functions for ServerReplicateActors
 	*/
-	int32 ServerReplicateActors_PrepConnections( const float DeltaSeconds );
-	void ServerReplicateActors_BuildConsiderList( TArray<FNetworkObjectInfo*>& OutConsiderList, const float ServerTickTime );
+	ENGINE_API int32 ServerReplicateActors_PrepConnections( const float DeltaSeconds );
+	ENGINE_API void ServerReplicateActors_BuildConsiderList( TArray<FNetworkObjectInfo*>& OutConsiderList, const float ServerTickTime );
 	int32 ServerReplicateActors_PrioritizeActors( UNetConnection* Connection, const TArray<FNetViewer>& ConnectionViewers, const TArray<FNetworkObjectInfo*> ConsiderList, const bool bCPUSaturated, FActorPriority*& OutPriorityList, FActorPriority**& OutPriorityActors );
 	int32 ServerReplicateActors_ProcessPrioritizedActors( UNetConnection* Connection, const TArray<FNetViewer>& ConnectionViewers, FActorPriority** PriorityActors, const int32 FinalSortedCount, int32& OutUpdated );
 #endif
