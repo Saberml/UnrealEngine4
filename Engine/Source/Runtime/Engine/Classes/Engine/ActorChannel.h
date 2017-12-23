@@ -129,11 +129,11 @@ public:
 	/** UActorChannel interface and accessors. */
 	AActor* GetActor() {return Actor;}
 
-	/** Replicate this channel's actor differences. Returns how many bits were replicated (does not include non-bunch packet overhead) */
-	int64 ReplicateActor();
+	/** Replicate this channel's actor differences. */
+	virtual int64 ReplicateActor();
 
 	/** Allocate replication tables for the actor channel. */
-	void SetChannelActor( AActor* InActor );
+	virtual void SetChannelActor( AActor* InActor );
 
 	virtual void NotifyActorChannelOpen(AActor* InActor, FInBunch& InBunch);
 

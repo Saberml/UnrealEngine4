@@ -477,11 +477,11 @@ struct ENGINE_API FActorSpawnParameters
 private:
 
 	friend class UPackageMapClient;
-
-	/* Is the actor remotely owned. This should only be set true by the package map when it is creating an actor on a client that was replicated from the server. */
-	uint16	bRemoteOwned:1;
 	
 public:
+
+	/* Is the actor remotely owned. This should only be set true by the package map when it is creating an actor on a client that was replicated from the server. */
+	uint16	bRemoteOwned : 1;
 
 	bool IsRemoteOwned() const { return bRemoteOwned; }
 

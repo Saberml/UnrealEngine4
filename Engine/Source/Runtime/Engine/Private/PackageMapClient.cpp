@@ -1,4 +1,5 @@
 // Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+#pragma optimize( "", off )  
 
 #include "Engine/PackageMapClient.h"
 #include "HAL/IConsoleManager.h"
@@ -3239,3 +3240,4 @@ FAutoConsoleCommand	ListNetGUIDExportsCommand(
 	);
 
 // ----------------------------------------------------------------
+#pragma optimize( "", on)
