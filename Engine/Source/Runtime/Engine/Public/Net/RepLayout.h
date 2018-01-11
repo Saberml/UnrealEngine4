@@ -742,9 +742,10 @@ private:
 	void ConstructProperties( TArray< uint8, TAlignedHeapAllocator<16> >& ShadowData ) const;
 	void InitProperties( TArray< uint8, TAlignedHeapAllocator<16> >& ShadowData, const uint8* const Src ) const;
 	void DestructProperties( FRepStateStaticBuffer& RepStateStaticBuffer ) const;
-	
-	TArray< FHandleToCmdIndex >	BaseHandleToCmdIndex;		// Converts a relative handle to the appropriate index into the Cmds array
 
+public:
+	TArray< FHandleToCmdIndex >	BaseHandleToCmdIndex;		// Converts a relative handle to the appropriate index into the Cmds array
+private:
 	int32						FirstNonCustomParent;
 	int32						RoleIndex;
 	int32						RemoteRoleIndex;
