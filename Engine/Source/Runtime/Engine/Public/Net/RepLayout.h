@@ -445,7 +445,7 @@ public:
 	int32								ArrayIndex;
 	int32								ArrayOffset;
 
-	bool	NextHandle();
+	ENGINE_API bool	NextHandle();
 	bool	JumpOverArray();
 	int32	PeekNextHandle() const;
 };
