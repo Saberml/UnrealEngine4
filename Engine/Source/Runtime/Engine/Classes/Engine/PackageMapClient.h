@@ -150,6 +150,7 @@ class ENGINE_API FNetGUIDCache
 {
 public:
 	FNetGUIDCache( UNetDriver * InDriver );
+	virtual ~FNetGUIDCache() {}
 
 	enum class ENetworkChecksumMode
 	{
