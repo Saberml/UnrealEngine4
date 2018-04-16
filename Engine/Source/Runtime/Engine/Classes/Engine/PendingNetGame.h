@@ -51,7 +51,10 @@ class ENGINE_API UPendingNetGame :
 	 *
 	 * @param Response response from the game containing its encryption key or an error message
 	 */
-	ENGINE_API void SetEncryptionKey(const FEncryptionKeyResponse& Response);
+	// SpatialGDK Start
+	// Don't explicitly expose this method via DLL interface, since the whole class is exposed for SpatialGDK.
+	void SetEncryptionKey(const FEncryptionKeyResponse& Response);
+	// SpatialGDK End
 
 public:
 	/** URL associated with this level. */
