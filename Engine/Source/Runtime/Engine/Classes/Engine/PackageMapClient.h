@@ -150,7 +150,9 @@ class ENGINE_API FNetGUIDCache
 {
 public:
 	FNetGUIDCache( UNetDriver * InDriver );
+	// IMPROBABLE-BEGIN - Make destructor virtual
 	virtual ~FNetGUIDCache() {}
+	// IMPROBABLE-END
 
 	enum class ENetworkChecksumMode
 	{
@@ -172,7 +174,9 @@ public:
 	bool			IsNetGUIDAuthority() const;
 	FNetworkGUID	GetOrAssignNetGUID( const UObject* Object, const TWeakObjectPtr<UObject>* WeakObjectPtr=nullptr /** Optional: pass in existing weakptr to prevent this function from constructing one internally */ );
 	FNetworkGUID	GetNetGUID( const UObject* Object ) const;
+	// IMPROBABLE-BEGIN - Make virtual so we can override this function
 	virtual FNetworkGUID	AssignNewNetGUID_Server( const UObject* Object );
+	// IMPROBABLE-END
 	void			RegisterNetGUID_Internal( const FNetworkGUID& NetGUID, const FNetGuidCacheObject& CacheObject );
 	void			RegisterNetGUID_Server( const FNetworkGUID& NetGUID, const UObject* Object );
 	void			RegisterNetGUID_Client( const FNetworkGUID& NetGUID, const UObject* Object );

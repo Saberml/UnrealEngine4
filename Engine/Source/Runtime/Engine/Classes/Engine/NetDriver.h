@@ -154,7 +154,9 @@ struct ENGINE_API FPacketSimulationSettings
 //
 // Priority sortable list.
 //
+// IMPROBABLE-BEGIN - Added ENGINE_API to export this struct
 struct ENGINE_API FActorPriority
+// IMPROBABLE-END
 {
 	int32						Priority;	// Update priority, higher = more important.
 	
@@ -422,7 +424,9 @@ public:
 	TArray< TWeakObjectPtr<AActor> >	LastSentActors;
 	TArray< TWeakObjectPtr<AActor> >	LastNonRelevantActors;
 
+	// IMPROBABLE-BEGIN - Added ENGINE_API to export this function
 	ENGINE_API void						PrintDebugRelevantActors();
+	// IMPROBABLE-END
 	
 	/** The server adds an entry into this map for every actor that is destroyed that join-in-progress
 	 *  clients need to know about, that is, startup actors. Also, individual UNetConnections
@@ -517,7 +521,9 @@ public:
 	 */
 	ENGINE_API virtual bool Exec(UWorld* InWorld, const TCHAR* Cmd, FOutputDevice& Ar=*GLog) override;
 
+	// IMPROBABLE-BEGIN - Added ENGINE_API to export this function
 	ENGINE_API virtual ENetMode	GetNetMode() const;
+	// IMPROBABLE-END
 
 	//~ End FExec Interface.
 
@@ -841,8 +847,10 @@ protected:
 	/**
 	* Helper functions for ServerReplicateActors
 	*/
+	// IMPROBABLE-BEGIN - Added ENGINE_API to export these functions
 	ENGINE_API int32 ServerReplicateActors_PrepConnections( const float DeltaSeconds );
 	ENGINE_API void ServerReplicateActors_BuildConsiderList( TArray<FNetworkObjectInfo*>& OutConsiderList, const float ServerTickTime );
+	// IMPROBABLE-END
 	int32 ServerReplicateActors_PrioritizeActors( UNetConnection* Connection, const TArray<FNetViewer>& ConnectionViewers, const TArray<FNetworkObjectInfo*> ConsiderList, const bool bCPUSaturated, FActorPriority*& OutPriorityList, FActorPriority**& OutPriorityActors );
 	int32 ServerReplicateActors_ProcessPrioritizedActors( UNetConnection* Connection, const TArray<FNetViewer>& ConnectionViewers, FActorPriority** PriorityActors, const int32 FinalSortedCount, int32& OutUpdated );
 #endif
