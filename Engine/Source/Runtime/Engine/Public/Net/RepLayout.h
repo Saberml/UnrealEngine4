@@ -445,9 +445,12 @@ public:
 	int32								ArrayIndex;
 	int32								ArrayOffset;
 
+	// IMPROBABLE-BEGIN
+	// Added ENGINE_API to export these functions
 	ENGINE_API bool	NextHandle();
-	bool	JumpOverArray();
-	int32	PeekNextHandle() const;
+	ENGINE_API bool	JumpOverArray();
+	ENGINE_API int32 PeekNextHandle() const;
+	// IMPROBABLE-END
 };
 
 /** FRepLayout
