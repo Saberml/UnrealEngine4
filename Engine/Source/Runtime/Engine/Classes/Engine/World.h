@@ -480,8 +480,10 @@ private:
 	
 public:
 
+	// IMPROBABLE-BEGIN - Make public so we can access this variable
 	/* Is the actor remotely owned. This should only be set true by the package map when it is creating an actor on a client that was replicated from the server. */
 	uint16	bRemoteOwned : 1;
+	// IMPROBABLE-END
 
 	bool IsRemoteOwned() const { return bRemoteOwned; }
 

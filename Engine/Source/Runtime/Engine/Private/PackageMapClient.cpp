@@ -1,5 +1,7 @@
 // Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// IMPROBABLE-BEGIN - Turn off optimisations in this class
 #pragma optimize( "", off )  
+// IMPROBABLE-END
 
 #include "Engine/PackageMapClient.h"
 #include "HAL/IConsoleManager.h"
@@ -3240,4 +3242,6 @@ FAutoConsoleCommand	ListNetGUIDExportsCommand(
 	);
 
 // ----------------------------------------------------------------
+// IMPROBABLE-BEGIN - Reset optimise pragma
 #pragma optimize( "", on)
+// IMPROBABLE-END

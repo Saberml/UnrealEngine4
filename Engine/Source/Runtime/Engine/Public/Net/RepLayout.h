@@ -445,8 +445,7 @@ public:
 	int32								ArrayIndex;
 	int32								ArrayOffset;
 
-	// IMPROBABLE-BEGIN
-	// Added ENGINE_API to export these functions
+	// IMPROBABLE-BEGIN - Added ENGINE_API to export these functions
 	ENGINE_API bool	NextHandle();
 	ENGINE_API bool	JumpOverArray();
 	ENGINE_API int32 PeekNextHandle() const;
@@ -521,7 +520,9 @@ public:
 	/** Clamp the changelist so that it conforms to the current size of either the array, or arrays within structs/arrays */
 	void PruneChangeList( FRepState * RepState, const void* RESTRICT Data, const TArray< uint16 >& Changed, TArray< uint16 >& PrunedChanged ) const;
 
+	// IMPROBABLE-BEGIN - Added ENGINE_API to export this function
 	ENGINE_API void MergeChangeList( const uint8* RESTRICT Data, const TArray< uint16 >& Dirty1, const TArray< uint16 >& Dirty2, TArray< uint16 >& MergedDirty ) const;
+	// IMPROBABLE-END
 
 	DEPRECATED(4.20, "Use the DiffProperties overload with the EDiffPropertiesFlags parameter")
 	bool DiffProperties( TArray<UProperty*>* RepNotifies, void* RESTRICT Destination, const void* RESTRICT Source, const bool bSync ) const;
@@ -575,8 +576,10 @@ public:
 
 	ENGINE_API virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
 
+	// IMPROBABLE-BEGIN - Make public so we can access these variables
 	TArray< FRepParentCmd >		Parents;
 	TArray< FRepLayoutCmd >		Cmds;
+	// IMPROBABLE-END
 
 private:
 	void RebuildConditionalProperties( FRepState * RESTRICT	RepState, const FRepChangedPropertyTracker& ChangedTracker, const FReplicationFlags& RepFlags ) const;
@@ -747,7 +750,9 @@ private:
 	void DestructProperties( FRepStateStaticBuffer& RepStateStaticBuffer ) const;
 
 public:
+	// IMPROBABLE-BEGIN - Make public so we can access this variable
 	TArray< FHandleToCmdIndex >	BaseHandleToCmdIndex;		// Converts a relative handle to the appropriate index into the Cmds array
+	// IMPROBABLE-END
 private:
 	int32						FirstNonCustomParent;
 	int32						RoleIndex;

@@ -129,11 +129,13 @@ public:
 	/** UActorChannel interface and accessors. */
 	AActor* GetActor() {return Actor;}
 
+	// IMPROBABLE-BEGIN - Make virtual so we can override these functions
 	/** Replicate this channel's actor differences. */
 	virtual int64 ReplicateActor();
 
 	/** Allocate replication tables for the actor channel. */
 	virtual void SetChannelActor( AActor* InActor );
+	// IMPROBABLE-END
 
 	virtual void NotifyActorChannelOpen(AActor* InActor, FInBunch& InBunch);
 

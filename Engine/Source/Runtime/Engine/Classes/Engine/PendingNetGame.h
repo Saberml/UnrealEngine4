@@ -16,7 +16,9 @@ class UNetDriver;
 struct FWorldContext;
 
 UCLASS(customConstructor, transient)
+// IMPROBABLE-BEGIN - Added ENGINE_API to export this class
 class ENGINE_API UPendingNetGame :
+// IMPROBABLE-END
 	public UObject,
 	public FNetworkNotify
 {
@@ -51,10 +53,9 @@ class ENGINE_API UPendingNetGame :
 	 *
 	 * @param Response response from the game containing its encryption key or an error message
 	 */
-	// SpatialGDK Start
-	// Don't explicitly expose this method via DLL interface, since the whole class is exposed for SpatialGDK.
+	// IMPROBABLE-BEGIN - Don't explicitly expose this method via DLL interface, since the whole class is exposed for SpatialGDK.
 	void SetEncryptionKey(const FEncryptionKeyResponse& Response);
-	// SpatialGDK End
+	// IMPROBABLE-END
 
 public:
 	/** URL associated with this level. */
@@ -75,7 +76,9 @@ public:
 	// Constructor.
 	UPendingNetGame(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
+	// IMPROBABLE-BEGIN - Make virtual so we can override this function
 	virtual void InitNetDriver();
+	// IMPROBABLE-END
 
 	/**
 	 * Send the packet for triggering the initial join
