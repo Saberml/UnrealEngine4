@@ -172,8 +172,9 @@ namespace UnrealBuildTool
 
 		public override bool CanUseXGE()
 		{
-			// XGE crashes with very high probability when v8_clang-3.9.0-centos cross-toolchain is used on Windows. Please make sure this is resolved before re-enabling it.
-			return BuildHostPlatform.Current.Platform == UnrealTargetPlatform.Linux;
+			// IMPROBABLE-BEGIN
+			return true;
+			// IMPROBABLE-END
 		}
 
 		/// <summary>

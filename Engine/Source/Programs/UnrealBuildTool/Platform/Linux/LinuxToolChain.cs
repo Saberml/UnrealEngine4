@@ -369,6 +369,12 @@ namespace UnrealBuildTool
 				if (CompilerVersionGreaterOrEqual(5, 0, 0))
 				{
 					Result += " -Wno-unused-lambda-capture";  // suppressed because capturing of compile-time constants is seemingly inconsistent. And MSVC doesn't do that.
+					// IMPROBABLE-BEGIN
+					if (CrossCompiling())
+					{
+						Result += " -Wno-nonportable-include-path"; // suppressed because clang seems to mangle absolute paths on Windows.
+					}
+					// IMPROBABLE-END
 				}
 			}
 
@@ -1497,7 +1503,7 @@ namespace UnrealBuildTool
 						EngineAndGameLibrariesString += Library;
 					}
 
-					// create the action 
+					// create the action
 					bool bUseCmdExe = BuildHostPlatform.Current.Platform == UnrealTargetPlatform.Win64 || BuildHostPlatform.Current.Platform == UnrealTargetPlatform.Win32;
 					string ShellBinary = bUseCmdExe ? "cmd.exe" : "/bin/sh";
 					string ExecuteSwitch = bUseCmdExe ? " /C" : ""; // avoid -c so scripts don't need +x
