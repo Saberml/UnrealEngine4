@@ -11,7 +11,9 @@
 /**
  * Archive for reading arbitrary data from the specified memory location
  */
+// IMPROBABLE-BEGIN - remove final specifier to allow inheriting from FMemoryReader
 class FMemoryReader : public FMemoryArchive
+// IMPROBABLE-END
 {
 public:
 	/**
