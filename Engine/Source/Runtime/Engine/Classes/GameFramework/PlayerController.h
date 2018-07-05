@@ -247,7 +247,7 @@ public:
 	UPlayer* Player;
 
 	/** Used in net games so client can acknowledge it possessed a specific pawn. */
-	UPROPERTY()
+	UPROPERTY(Handover)		// IMPROBABLE-CHANGE - Added Handover tag
 	APawn* AcknowledgedPawn;
 
 	/** Director track that's currently possessing this player controller, or none if not possessed. */

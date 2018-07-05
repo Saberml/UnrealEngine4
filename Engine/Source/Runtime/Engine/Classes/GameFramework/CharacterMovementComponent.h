@@ -221,7 +221,7 @@ public:
 	 * This is automatically replicated through the Character owner and for client-server movement functions.
 	 * @see SetMovementMode(), CustomMovementMode
 	 */
-	UPROPERTY(Category="Character Movement: MovementMode", BlueprintReadOnly)
+	UPROPERTY(Category="Character Movement: MovementMode", BlueprintReadOnly, Handover)	// IMPROBABLE-CHANGE - Added Handover tag
 	TEnumAsByte<enum EMovementMode> MovementMode;
 
 	/**
@@ -229,7 +229,7 @@ public:
 	 * This is automatically replicated through the Character owner and for client-server movement functions.
 	 * @see SetMovementMode()
 	 */
-	UPROPERTY(Category="Character Movement: MovementMode", BlueprintReadOnly)
+	UPROPERTY(Category="Character Movement: MovementMode", BlueprintReadOnly, Handover)	// IMPROBABLE-CHANGE - Added Handover tag
 	uint8 CustomMovementMode;
 
 	/** Saved location of object we are standing on, for UpdateBasedMovement() to determine if base moved in the last frame, and therefore pawn needs an update. */
@@ -831,7 +831,7 @@ private:
 	 * Only allowed values are: MOVE_Walking, MOVE_NavWalking.
 	 * @see SetGroundMovementMode(), GetGroundMovementMode()
 	 */
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, Handover)	// IMPROBABLE-CHANGE - Added Handover tag
 	TEnumAsByte<enum EMovementMode> GroundMovementMode;
 
 public:

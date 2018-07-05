@@ -426,6 +426,9 @@ enum EPropertyFlags : uint64
 	CPF_NativeAccessSpecifierProtected	= 0x0020000000000000,	// Protected native access specifier
 	CPF_NativeAccessSpecifierPrivate	= 0x0040000000000000,	// Private native access specifier
 	CPF_SkipSerialization				= 0x0080000000000000,	// Property shouldn't be serialized, can still be exported to text
+// IMPROBABLE-BEGIN - Added Handover flag
+	CPF_Handover						= 0x4000000000000000,	// This property is replicated between servers on authority handover
+// IMPROBABLE-END
 };
 
 /** @name Combinations flags */
@@ -957,6 +960,11 @@ namespace UP
 
 		/// Property shouldn't be serialized, can still be exported to text
 		SkipSerialization,
+
+		// IMPROBABLE-BEGIN - Added enum
+		/// Property should be handed over between servers on authority change
+		Handover,
+		// IMPROBABLE-END
 	};
 }
 
