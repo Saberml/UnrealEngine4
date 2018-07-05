@@ -3380,6 +3380,15 @@ void FHeaderParser::GetVarType(
 				}
 				break;
 
+				// IMPROBABLE-BEGIN - Added handover enum and flag. This allows tagged variables to be transmitted between
+				// servers on authority handover
+				case EVariableSpecifier::Handover:
+				{
+					Flags |= CPF_Handover;
+				}
+				break;
+				// IMPROBABLE-END
+
 				case EVariableSpecifier::NotReplicated:
 				{
 					if (!OwnerStruct->IsA<UScriptStruct>())

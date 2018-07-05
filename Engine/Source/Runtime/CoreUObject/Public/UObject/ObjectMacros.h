@@ -418,6 +418,9 @@ typedef uint64 EClassCastFlags;
 #define CPF_NativeAccessSpecifierProtected	DECLARE_UINT64(0x0020000000000000)		// Protected native access specifier
 #define CPF_NativeAccessSpecifierPrivate	DECLARE_UINT64(0x0040000000000000)		// Private native access specifier
 #define CPF_SkipSerialization				DECLARE_UINT64(0x0080000000000000)		// Property shouldn't be serialized, can still be exported to text
+// IMPROBABLE-BEGIN - Added Handover flag
+#define CPF_Handover						DECLARE_UINT64(0x4000000000000000)		// This property is replicated between servers on authority handover
+// IMPROBABLE-END
 
 
 /** @name Combinations flags */
@@ -947,6 +950,11 @@ namespace UP
 
 		/// Property shouldn't be serialized, can still be exported to text
 		SkipSerialization,
+
+		// IMPROBABLE-BEGIN - Added enum
+		/// Property should be handed over between servers on authority change
+		Handover,
+		// IMPROBABLE-END
 	};
 }
 
