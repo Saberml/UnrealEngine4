@@ -467,10 +467,12 @@ public:
 
 	void OpenAcked( FRepState * RepState ) const;
 
-	void InitShadowData(
+	// IMPROBABLE-BEGIN - Added ENGINE_API to export this function
+	ENGINE_API void InitShadowData(
 		TArray< uint8, TAlignedHeapAllocator<16> >&	ShadowData,
 		UClass *									InObjectClass,
 		const uint8 * const							Src ) const;
+	// IMPROBABLE-END
 
 	void InitRepState( 
 		FRepState *									RepState, 
