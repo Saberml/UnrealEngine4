@@ -1,6 +1,8 @@
 // Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 // IMPROBABLE-BEGIN - Turn off optimisations in this class
-#pragma optimize( "", off )  
+#ifndef PLATFORM_PS4
+#pragma optimize( "", off )
+#endif
 // IMPROBABLE-END
 
 #include "Engine/PackageMapClient.h"
@@ -3243,5 +3245,7 @@ FAutoConsoleCommand	ListNetGUIDExportsCommand(
 
 // ----------------------------------------------------------------
 // IMPROBABLE-BEGIN - Reset optimise pragma
+#ifndef PLATFORM_PS4
 #pragma optimize( "", on)
+#endif
 // IMPROBABLE-END
