@@ -51,7 +51,9 @@ public class ZipUtils : BuildCommand
 
 		//setup filter to include all files
 		FileFilter Filter = new FileFilter();
-		Filter.Include("*.*");
+		// IMPROBABLE-BEGIN - Switch filter to include all files, not just those with a '.'
+		Filter.Include("*");
+		// IMPROBABLE-END
 
 		if (bUnzip)
 		{
