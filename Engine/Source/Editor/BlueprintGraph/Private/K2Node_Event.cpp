@@ -639,6 +639,19 @@ FText UK2Node_Event::GetLocalizedNetString(uint32 FunctionFlags, bool Calling)
 				RPCString = NSLOCTEXT("K2Node", "CustomEvent_ReplicatedServerFrom", "Replicated From Client\nExecutes On Server");
 			}
 		}
+		// IMPROBABLE-BEGIN: Added cross-server RPCs
+		else if (FunctionFlags & FUNC_NetCrossServer)
+		{
+			if (Calling)
+			{
+				RPCString = NSLOCTEXT("K2Node", "CustomEvent_ReplicatedCrossServer", "Replicated to authoritative server");
+			}
+			else
+			{
+				RPCString = NSLOCTEXT("K2Node", "CustomEvent_ReplicatedCrossServerFrom", "Replicated From non-authoritative server\nExecutes on authoritative server");
+			}
+		}
+		// IMPROBABLE-END
 		else if (FunctionFlags & FUNC_NetClient)
 		{
 			if (Calling)

@@ -110,7 +110,9 @@ enum EFunctionFlags : uint32
 	FUNC_RequiredAPI			= 0x00000002,	// Indicates this function is DLL exported/imported.
 	FUNC_BlueprintAuthorityOnly= 0x00000004,   // Function will only run if the object has network authority
 	FUNC_BlueprintCosmetic	= 0x00000008,   // Function is cosmetic in nature and should not be invoked on dedicated servers
-	// FUNC_				= 0x00000010,   // unused.
+	// IMPROBABLE-BEGIN: Added cross-worker RPCs
+	FUNC_NetCrossServer		= 0x00000010,	// Function is for communicating between servers
+	// IMPROBABLE-END
 	// FUNC_				= 0x00000020,   // unused.
 	FUNC_Net				= 0x00000040,   // Function is network-replicated.
 	FUNC_NetReliable		= 0x00000080,   // Function should be sent reliably on the network.
@@ -153,7 +155,9 @@ ENUM_CLASS_FLAGS(EFunctionFlags)
 // Combinations of flags.
 #define FUNC_FuncInherit       ((EFunctionFlags)(FUNC_Exec | FUNC_Event | FUNC_BlueprintCallable | FUNC_BlueprintEvent | FUNC_BlueprintAuthorityOnly | FUNC_BlueprintCosmetic | FUNC_Const))
 #define FUNC_FuncOverrideMatch ((EFunctionFlags)(FUNC_Exec | FUNC_Final | FUNC_Static | FUNC_Public | FUNC_Protected | FUNC_Private))
-#define FUNC_NetFuncFlags      ((EFunctionFlags)(FUNC_Net | FUNC_NetReliable | FUNC_NetServer | FUNC_NetClient | FUNC_NetMulticast))
+// IMPROBABLE-BEGIN: Added FUNC_NetCrossServer
+#define FUNC_NetFuncFlags      ((EFunctionFlags)(FUNC_Net | FUNC_NetReliable | FUNC_NetServer | FUNC_NetClient | FUNC_NetMulticast | FUNC_NetCrossServer))
+// IMPROBABLE-END
 #define FUNC_AccessSpecifiers  ((EFunctionFlags)(FUNC_Public | FUNC_Private | FUNC_Protected))
 
 //

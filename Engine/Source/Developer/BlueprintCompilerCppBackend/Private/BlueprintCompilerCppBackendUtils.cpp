@@ -753,6 +753,9 @@ TArray<FString> FEmitHelper::FunctionFlagsToTags(uint64 Flags)
 	HANDLE_CPF_TAG(TEXT("Exec"), FUNC_Exec)
 	HANDLE_CPF_TAG(TEXT("Server"), FUNC_Net | FUNC_NetServer)
 	HANDLE_CPF_TAG(TEXT("Client"), FUNC_Net | FUNC_NetClient)
+	// IMPROBABLE-BEGIN: Added "CrossServer"
+	HANDLE_CPF_TAG(TEXT("CrossServer"), FUNC_Net | FUNC_NetCrossServer)
+	// IMPROBABLE-END
 	HANDLE_CPF_TAG(TEXT("NetMulticast"), FUNC_Net | FUNC_NetMulticast)
 	HANDLE_CPF_TAG(TEXT("Reliable"), FUNC_NetReliable)
 	HANDLE_CPF_TAG(TEXT("BlueprintCallable"), FUNC_BlueprintCallable)

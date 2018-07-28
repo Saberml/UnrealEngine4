@@ -748,16 +748,18 @@ TArray<FString> FBlueprintCompilerCppBackendBase::ConstructFunctionDeclaration(F
 		ensure(!bIsVirtual || Function->IsSignatureCompatibleWith(OriginalFunction));
 		bIsOverride = bGenerateAsNativeEventImplementation || bGenerateAsNonNativeOverride || (bIsVirtual && !bShouldHandleAsNonNativeEvent && !bBPInterfaceImplementation && (Function != OriginalFunction));
 
-		auto PreliminaryConditionsToSkipMacroUFUNC = [](UFunction* InFunction) -> bool 
+		auto PreliminaryConditionsToSkipMacroUFUNC = [](UFunction* InFunction) -> bool
 		{
+			// IMPROBABLE-BEGIN: Added FUNC_CrossServer
 			check(InFunction);
 			return !FEmitHelper::ShouldHandleAsNativeEvent(InFunction)
 				&& !FEmitHelper::ShouldHandleAsImplementableEvent(InFunction)
 				&& !InFunction->GetOwnerClass()->IsChildOf<UInterface>()
 				&& !InFunction->HasAnyFunctionFlags(FUNC_Exec | FUNC_Static | FUNC_Native
-					| FUNC_Net | FUNC_NetServer | FUNC_NetClient | FUNC_NetMulticast | FUNC_NetReliable
+					| FUNC_Net | FUNC_NetServer | FUNC_NetClient | FUNC_NetCrossServer | FUNC_NetMulticast | FUNC_NetReliable
 					| FUNC_BlueprintAuthorityOnly | FUNC_BlueprintCosmetic | FUNC_NetValidate
 					| FUNC_MulticastDelegate | FUNC_Delegate);
+			// IMPROBABLE-END
 		};
 
 		auto FunctionIsBoundToAnyDelegate = [](UFunction* InFunction)
