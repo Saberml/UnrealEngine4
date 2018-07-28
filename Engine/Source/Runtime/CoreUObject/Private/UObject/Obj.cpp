@@ -2912,7 +2912,9 @@ void ParseFunctionFlags(uint32 Flags, TArray<const TCHAR*>& Results)
 		TEXT("0x00000002"),
 		TEXT("BlueprintAuthorityOnly"),	// FUNC_BlueprintAuthorityOnly
 		TEXT("BlueprintCosmetic"),		// FUNC_BlueprintCosmetic
-		TEXT("0x00000010"),
+		// IMPROBABLE-BEGIN: Added cross-server RPCs
+		TEXT("NetCrossServer"),
+		// IMPROBABLE-END
 		TEXT("0x00000020"),
 		TEXT("Net"),					// FUNC_Net
 		TEXT("NetReliable"),			// FUNC_NetReliable

@@ -2909,11 +2909,13 @@ static bool ValidateConformCompatibility(UPackage* NewPackage, FLinkerLoad* OldL
 									UFunction* NewFunc = dynamic_cast<UFunction*>(*NewFieldIt);
 									if (OldFunc != nullptr && NewFunc != nullptr)
 									{
-										if ((OldFunc->FunctionFlags & (FUNC_Net | FUNC_NetServer | FUNC_NetClient)) != (NewFunc->FunctionFlags & (FUNC_Net | FUNC_NetServer | FUNC_NetClient)))
+										// IMPROBABLE-BEGIN - Added cross-server RPCs
+										if ((OldFunc->FunctionFlags & (FUNC_Net | FUNC_NetServer | FUNC_NetClient | FUNC_NetCrossServer)) != (NewFunc->FunctionFlags & (FUNC_Net | FUNC_NetServer | FUNC_NetClient | FUNC_NetCrossServer)))
 										{
 											Error->Logf(ELogVerbosity::Error, TEXT("Network flag mismatch for function %s"), *NewFunc->GetPathName());
 											bHadCompatibilityErrors = true;
 										}
+										// IMPROBABLE-END
 									}
 								}
 							}

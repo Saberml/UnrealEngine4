@@ -363,6 +363,29 @@ namespace
 					}
 				}
 				break;
+				// IMPROBABLE-BEGIN: Added cross-server RPCs
+				case EFunctionSpecifier::CrossServer:
+				{
+					if ((FuncInfo.FunctionFlags & FUNC_BlueprintEvent) != 0)
+					{
+						FError::Throwf(TEXT("BlueprintImplementableEvent or BlueprintNativeEvent functions cannot be declared as CrossServer"));
+					}
+
+					FuncInfo.FunctionFlags |= FUNC_Net;
+					FuncInfo.FunctionFlags |= FUNC_NetCrossServer;
+
+					if (Specifier.Values.Num())
+					{
+						FuncInfo.CppImplName = Specifier.Values[0];
+					}
+
+					if (FuncInfo.FunctionFlags & FUNC_Exec)
+					{
+						UE_LOG_ERROR_UHT(TEXT("Exec functions cannot be replicated!"));
+					}
+				}
+				break;
+				// IMPROBABLE-END
 
 				case EFunctionSpecifier::Client:
 				{

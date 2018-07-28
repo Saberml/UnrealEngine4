@@ -3327,6 +3327,12 @@ void FBlueprintGraphActionDetails::CustomizeDetails( IDetailLayoutBuilder& Detai
 										LOCTEXT("ClientToolTip", "Replicate this event from the server to owning client."),
 										FSlateIcon(),
 										FUIAction(FExecuteAction::CreateStatic( &FBlueprintGraphActionDetails::SetNetFlags, FunctionEntryNodePtr, static_cast<uint32>(FUNC_NetClient) ), CanExecuteDelegate));
+			// IMPROBABLE-BEGIN: Added cross-server RPCs
+			RepComboMenu.AddMenuEntry(ReplicationSpecifierProperName(FUNC_NetCrossServer),
+										LOCTEXT("CrossServerToolTip", "Replicate this event from server to authoritative server. It will execute on the same server if it is already authoritative over the object."),
+										FSlateIcon(),
+										FUIAction(FExecuteAction::CreateStatic(&FBlueprintGraphActionDetails::SetNetFlags, FunctionEntryNodePtr, static_cast<uint32>(FUNC_NetCrossServer)), CanExecuteDelegate));
+			// IMPROBABLE-END
 
 			Category.AddCustomRow( LOCTEXT( "FunctionReplicate", "Replicates" ) )
 			.NameContent()
@@ -3563,7 +3569,9 @@ void FBlueprintGraphActionDetails::SetNetFlags( TWeakObjectPtr<UK2Node_EditableP
 	if( FunctionEntryNode.IsValid() )
 	{
 		const int32 FlagsToSet = NetFlags ? FUNC_Net|NetFlags : 0;
-		const int32 FlagsToClear = FUNC_Net|FUNC_NetMulticast|FUNC_NetServer|FUNC_NetClient;
+		// IMPROBABLE-BEGIN: Added FUNC_NetCrossServer
+		const int32 FlagsToClear = FUNC_Net|FUNC_NetMulticast|FUNC_NetServer|FUNC_NetClient|FUNC_NetCrossServer;
+		// IMPROBABLE-END
 		// Clear all net flags before setting
 		if( FlagsToSet != FlagsToClear )
 		{
@@ -3600,7 +3608,9 @@ FText FBlueprintGraphActionDetails::GetCurrentReplicatedEventString() const
 	const UK2Node_EditablePinBase * FunctionEntryNode = FunctionEntryNodePtr.Get();
 	const UK2Node_CustomEvent* CustomEvent = Cast<const UK2Node_CustomEvent>(FunctionEntryNode);
 
-	uint32 const ReplicatedNetMask = (FUNC_NetMulticast | FUNC_NetServer | FUNC_NetClient);
+	// IMPROBABLE-BEGIN: Added cross-server RPCs
+	uint32 const ReplicatedNetMask = (FUNC_NetMulticast | FUNC_NetServer | FUNC_NetClient | FUNC_NetCrossServer);
+	// IMPROBABLE-END
 
 	FText ReplicationText;
 
@@ -4428,10 +4438,14 @@ FText FBlueprintGraphActionDetails::ReplicationSpecifierProperName( uint32 Repli
 	{
 	case FUNC_NetMulticast:
 		return LOCTEXT( "MulticastDropDown", "Multicast" );
+	// IMPROBABLE-BEGIN: Added cross-server RPCs
 	case FUNC_NetServer:
-		return LOCTEXT( "ServerDropDown", "Run on Server" );
+		return LOCTEXT( "ServerDropDown", "Run on Server (sent from client)" );
 	case FUNC_NetClient:
 		return LOCTEXT( "ClientDropDown", "Run on owning Client" );
+	case FUNC_NetCrossServer:
+		return LOCTEXT( "CrossServerDropDown", "Run on authoritative server (sent from server)" );
+	// IMPROBABLE-END
 	case 0:
 		return LOCTEXT( "NotReplicatedDropDown", "Not Replicated" );
 	}

@@ -3730,12 +3730,14 @@ int32 AActor::GetFunctionCallspace( UFunction* Function, void* Parameters, FFram
 	// Quick reject 2. Has to be a network game to continue
 	if (NetMode == NM_Standalone)
 	{
-		if (Role < ROLE_Authority && (Function->FunctionFlags & FUNC_NetServer))
+		// IMPROBABLE-BEGIN: Added cross-server RPCs
+		if (Role < ROLE_Authority && (Function->FunctionFlags & (FUNC_NetServer | FUNC_NetCrossServer)))
 		{
 			// Don't let clients call server functions (in edge cases where NetMode is standalone (net driver is null))
 			DEBUG_CALLSPACE(TEXT("GetFunctionCallspace No Authority Server Call Absorbed: %s"), *Function->GetName());
 			return FunctionCallspace::Absorbed;
 		}
+		// IMPROBABLE-END
 
 		// Call local
 		return FunctionCallspace::Local;
@@ -3785,20 +3787,23 @@ int32 AActor::GetFunctionCallspace( UFunction* Function, void* Parameters, FFram
 		}
 	}
 
-	// if we are the server, and it's not a send-to-client function,
-	if (bIsServer && !(Function->FunctionFlags & FUNC_NetClient))
+	// IMPROBABLE-BEGIN: Added cross-server RPCs
+	// if we are the server, and it's not a send-to-client or send-to-other-server function,
+	if (bIsServer && !(Function->FunctionFlags & (FUNC_NetClient | FUNC_NetCrossServer)))
 	{
 		// don't replicate
 		DEBUG_CALLSPACE(TEXT("GetFunctionCallspace Server calling Server function: %s %s"), *Function->GetName(), FunctionCallspace::ToString(Callspace));
 		return Callspace;
 	}
+
 	// if we aren't the server, and it's not a send-to-server function,
 	if (!bIsServer && !(Function->FunctionFlags & FUNC_NetServer))
 	{
 		// don't replicate
-		DEBUG_CALLSPACE(TEXT("GetFunctionCallspace Client calling Client function: %s %s"), *Function->GetName(), FunctionCallspace::ToString(Callspace));
+		DEBUG_CALLSPACE(TEXT("GetFunctionCallspace Client calling Client or cross-worker function: %s %s"), *Function->GetName(), FunctionCallspace::ToString(Callspace));
 		return Callspace;
 	}
+	// IMPROBABLE-END
 
 	// Check if the actor can potentially call remote functions	
 	if (Role == ROLE_Authority)
