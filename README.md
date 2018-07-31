@@ -1,3 +1,13 @@
+# SpatialOS Unreal GDK fork of Unreal Engine
+
+This repository is a fork of Unreal Engine, for use with the SpatialOS Unreal GDK. 
+
+For installation and setup information see the [SpatialOS Unreal GDK](https://github.com/spatialos/UnrealGDK) repository.
+
+The text below and all documentation here is a copy of the Unreal Engine documentation.
+
+-------------
+
 Unreal Engine
 =============
 
