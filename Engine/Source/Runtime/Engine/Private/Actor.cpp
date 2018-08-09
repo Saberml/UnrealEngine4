@@ -3932,8 +3932,6 @@ int32 AActor::GetFunctionCallspace( UFunction* Function, void* Parameters, FFram
 		DEBUG_CALLSPACE(TEXT("GetFunctionCallspace Client calling Client or cross-worker function: %s %s"), *Function->GetName(), FunctionCallspace::ToString(Callspace));
 		return Callspace;
 	}
-
-
 	// IMPROBABLE-END
 
 	// Check if the actor can potentially call remote functions	
