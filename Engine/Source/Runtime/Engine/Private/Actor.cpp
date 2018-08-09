@@ -3901,6 +3901,22 @@ int32 AActor::GetFunctionCallspace( UFunction* Function, void* Parameters, FFram
 	}
 
 	// IMPROBABLE-BEGIN: Added cross-server RPCs
+	if(bIsServer && Function->FunctionFlags & FUNC_NetCrossServer)
+	{
+		if(Role < ROLE_Authority)
+		{
+			// If we don't have authority, replicate
+			DEBUG_CALLSPACE(TEXT("GetFunctionCallspace Client calling cross-server function: %s %s"), *Function->GetName(), FunctionCallspace::ToString(Callspace));
+			return FunctionCallspace::Remote;
+		}
+		else
+		{
+			// Have authority, execute locally
+			DEBUG_CALLSPACE(TEXT("GetFunctionCallspace Client calling cross-server function: %s %s"), *Function->GetName(), FunctionCallspace::ToString(Callspace));
+			return FunctionCallspace::Local;
+		}
+	}
+
 	// if we are the server, and it's not a send-to-client or send-to-other-server function,
 	if (bIsServer && !(Function->FunctionFlags & (FUNC_NetClient | FUNC_NetCrossServer)))
 	{
@@ -3916,6 +3932,8 @@ int32 AActor::GetFunctionCallspace( UFunction* Function, void* Parameters, FFram
 		DEBUG_CALLSPACE(TEXT("GetFunctionCallspace Client calling Client or cross-worker function: %s %s"), *Function->GetName(), FunctionCallspace::ToString(Callspace));
 		return Callspace;
 	}
+
+
 	// IMPROBABLE-END
 
 	// Check if the actor can potentially call remote functions	
