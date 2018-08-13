@@ -1251,6 +1251,10 @@ protected:
 	virtual void BeginPlay();
 
 public:
+	// IMPROBABLE-BEGIN
+	virtual void OnSpatialAuthorityChange() {};  // Called when Spatial Position component changes authority
+	// IMPROBABLE-END
+
 	/** Initiate a begin play call on this Actor, will handle calling in the correct order. */
 	void DispatchBeginPlay();
 
