@@ -7555,6 +7555,22 @@ FNetworkPredictionData_Server* UCharacterMovementComponent::GetPredictionData_Se
 	{
 		UCharacterMovementComponent* MutableThis = const_cast<UCharacterMovementComponent*>(this);
 		MutableThis->ServerPredictionData = new FNetworkPredictionData_Server_Character(*this);
+
+		// IMPROBABLE-BEGIN - sync data after handover
+		if (PredictionHandoverData.CurrentClientTimeStamp > 0.f)  // Don't call this for first spawn; alternatively make a flag
+		{
+			FindFloor(UpdatedComponent->GetComponentLocation(), MutableThis->CurrentFloor, false, NULL);  // compute CurrentFloor so that Velocity won't be reset inside PhysWalking
+			ServerPredictionData->CurrentClientTimeStamp = PredictionHandoverData.CurrentClientTimeStamp;
+			ServerPredictionData->LastUpdateTime = PredictionHandoverData.LastUpdateTime;
+			ServerPredictionData->ServerTimeStampLastServerMove = PredictionHandoverData.ServerTimeStampLastServerMove;
+			ServerPredictionData->LifetimeRawTimeDiscrepancy = PredictionHandoverData.LifetimeRawTimeDiscrepancy;
+			ServerPredictionData->WorldCreationTime = PredictionHandoverData.WorldCreationTime;
+			FRotator SavedRotation = PredictionHandoverData.CurrentRotation;
+			MutableThis->MoveUpdatedComponent(FVector::ZeroVector, SavedRotation, true);
+			UE_LOG(LogNetPlayerMovement, Verbose, TEXT("Syncing data after handover... velocity: %s, rotation: %s"), *Velocity.ToString(), *UpdatedComponent->GetComponentRotation().ToString());
+			//const_cast<FTransform&>(RootMotionParams.GetRootMotionTransform()).SetTranslation(Velocity);
+		}
+		// IMPROBABLE-END
 	}
 
 	return ServerPredictionData;
@@ -7926,7 +7942,20 @@ void UCharacterMovementComponent::CallServerMove
 	}
 }
 
+// IMPROBABLE-BEGIN - Sync PredictionHandoverDada with ServerData
+void UCharacterMovementComponent::UpdateHandoverData()
+{
+	FNetworkPredictionData_Server_Character* ServerData = GetPredictionData_Server_Character();
+	check(ServerData);
 
+	PredictionHandoverData.CurrentClientTimeStamp = ServerData->CurrentClientTimeStamp;
+	PredictionHandoverData.LastUpdateTime = ServerData->LastUpdateTime;
+	PredictionHandoverData.ServerTimeStampLastServerMove = ServerData->ServerTimeStampLastServerMove;
+	PredictionHandoverData.LifetimeRawTimeDiscrepancy = ServerData->LifetimeRawTimeDiscrepancy;
+	PredictionHandoverData.WorldCreationTime = ServerData->WorldCreationTime;
+	PredictionHandoverData.CurrentRotation = UpdatedComponent->GetComponentRotation();
+}
+// IMPROBABLE-END
 
 void UCharacterMovementComponent::ServerMoveOld_Implementation
 	(
@@ -7961,6 +7990,7 @@ void UCharacterMovementComponent::ServerMoveOld_Implementation
 	ServerData->ServerTimeStampLastServerMove = ServerData->ServerTimeStamp;
 
 	MoveAutonomous(OldTimeStamp, DeltaTime, OldMoveFlags, OldAccel);
+	UpdateHandoverData();  // IMPROBABLE-CHANGE
 }
 
 
@@ -8380,6 +8410,7 @@ void UCharacterMovementComponent::ServerMove_Implementation(
 			*GetNameSafe(GetMovementBase()), *CharacterOwner->GetBasedMovement().BoneName.ToString(), MovementBaseUtility::IsDynamicBase(GetMovementBase()) ? 1 : 0);
 
 	ServerMoveHandleClientError(TimeStamp, DeltaTime, Accel, ClientLoc, ClientMovementBase, ClientBaseBoneName, ClientMovementMode);
+	UpdateHandoverData();  // IMPROBABLE-CHANGE
 }
 
 

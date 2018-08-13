@@ -76,7 +76,7 @@ class ENGINE_API UMovementComponent : public UActorComponent
 	EMoveComponentFlags MoveComponentFlags;
 
 	/** Current velocity of updated component. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Velocity)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Velocity, Handover)  // IMPROBABLE-CHANGE - Added Handover tag
 	FVector Velocity;
 
 	/**
