@@ -134,6 +134,42 @@ struct TStructOpsTypeTraits<FCharacterMovementComponentPostPhysicsTickFunction> 
 	};
 };
 
+// IMPROBABLE-BEGIN - Handing over relevant data for server worker's ClientPredictionData
+USTRUCT()
+struct FPredictionHandoverData
+{
+	GENERATED_USTRUCT_BODY()
+
+	// Not included fields of FNetworkPredictionData_Server_Character: PendingAdjustment, bForceClientUpdate, MaxMoveDeltaTime, TimeDiscrepancy,
+	// bResolvingTimeDiscrepancy, TimeDiscrepancyResolutionMoveDeltaOverride, TimeDiscrepancyAccumulatedClientDeltasSinceLastServerTick
+	// These are temporary variables updated per server frame that we can afford to lose on handover
+
+	// These properties below need to be handed over because they are cumulative over entire actor lifetime
+	UPROPERTY()
+	float CurrentClientTimeStamp;
+	UPROPERTY()
+	float LastUpdateTime;
+	UPROPERTY()
+	float ServerTimeStampLastServerMove;
+	UPROPERTY()
+	float LifetimeRawTimeDiscrepancy;
+	UPROPERTY()
+	float WorldCreationTime;
+	UPROPERTY()
+	FRotator CurrentRotation;
+
+	FPredictionHandoverData()
+		: CurrentClientTimeStamp(0.f)
+		, LastUpdateTime(0.f)
+		, ServerTimeStampLastServerMove(0.f)
+		, LifetimeRawTimeDiscrepancy(0.f)
+		, WorldCreationTime(0.f)
+		, CurrentRotation()
+	{
+	}
+};
+// IMPROBABLE-END
+
 /** Shared pointer for easy memory management of FSavedMove_Character, for accumulating and replaying network moves. */
 typedef TSharedPtr<class FSavedMove_Character> FSavedMovePtr;
 
@@ -2026,6 +2062,13 @@ public:
 protected:
 	class FNetworkPredictionData_Client_Character* ClientPredictionData;
 	class FNetworkPredictionData_Server_Character* ServerPredictionData;
+
+	// IMPROBABLE-BEGIN
+	UPROPERTY(Handover)	// struct containing relevant handover data
+	FPredictionHandoverData PredictionHandoverData;
+
+	void UpdateHandoverData();  // updates PredictionHandoverData at end of every ServerMove or ServerMoveOld
+	// IMPROBABLE-END
 
 	/**
 	 * Smooth mesh location for network interpolation, based on values set up by SmoothCorrection.
