@@ -5017,7 +5017,7 @@ bool FHeaderParser::CompileDeclaration(FClasses& AllClasses, TArray<UDelegateFun
 		return true;
 	}
 
-	if (Token.Matches(TEXT("UINTERFACE")))
+	if (Token.Matches(TEXT("UINTERFACE"), ESearchCase::CaseSensitive))
 	{
 		bHaveSeenUClass = true;
 		bEncounteredNewStyleClass_UnmatchedBrackets = true;
@@ -5031,7 +5031,7 @@ bool FHeaderParser::CompileDeclaration(FClasses& AllClasses, TArray<UDelegateFun
 		return true;
 	}
 
-	if (Token.Matches(TEXT("UDELEGATE")))
+	if (Token.Matches(TEXT("UDELEGATE"), ESearchCase::CaseSensitive))
 	{
 		UDelegateFunction* Delegate = CompileDelegateDeclaration(AllClasses, Token.Identifier, EDelegateSpecifierAction::Parse);
 		DelegatesToFixup.Add(Delegate);
@@ -5054,14 +5054,14 @@ bool FHeaderParser::CompileDeclaration(FClasses& AllClasses, TArray<UDelegateFun
 		return true;
 	}
 
-	if (Token.Matches(TEXT("UENUM")))
+	if (Token.Matches(TEXT("UENUM"), ESearchCase::CaseSensitive))
 	{
 		// Enumeration definition.
 		CompileEnum();
 		return true;
 	}
 
-	if (Token.Matches(TEXT("USTRUCT")))
+	if (Token.Matches(TEXT("USTRUCT"), ESearchCase::CaseSensitive))
 	{
 		// Struct definition.
 		UScriptStruct* Struct = CompileStructDeclaration(AllClasses);
