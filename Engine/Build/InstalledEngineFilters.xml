@@ -84,6 +84,9 @@
 		<!-- Source code -->
 		Engine/Source/UE4Game.Target.cs
 		Engine/Source/UE4Editor.Target.cs
+		<!-- improbable start -->
+		Engine/Source/UE4Server.Target.cs
+		<!-- improbable end -->
 		Engine/Source/Runtime/...
 		Engine/Source/Developer/...
 		Engine/Source/Editor/...

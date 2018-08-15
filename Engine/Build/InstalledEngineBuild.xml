@@ -275,6 +275,13 @@
 		<!-- Downstream monolithics and tools Linux -->
 		<Node Name="Compile UE4Game Linux" Requires="Compile UnrealHeaderTool $(HostPlatform)" Produces="#UE4Game Linux;#UE4Game Linux Unstripped;#UE4Game Linux Stripped;#UE4Game Linux Includes">
 		
+			<!-- Improbable begin -->
+			<Compile Target="UE4Server" Platform="Linux" Configuration="Development" Tag="#UE4Game Linux" Arguments="-precompile"/>
+			<Compile Target="UE4Server" Platform="Linux" Configuration="Shipping" Tag="#UE4Game Linux" Arguments="-precompile"/>
+
+			<Tag Files="Engine/Intermediate/Build/Linux/B4D820EA/UE4Server/Inc/...;Engine/Plugins/.../Intermediate/Build/Linux/B4D820EA/UE4Server/Inc/..." With="#UE4Game Linux Includes"/>
+			<!-- Improbable end -->
+      
 			<ForEach Name="Configuration" Values="$(GameConfigurations)">
 				<Compile Target="UE4Game" Platform="Linux" Configuration="$(Configuration)" Tag="#UE4Game Linux" Arguments="-precompile"/>
 			</ForEach>
@@ -430,7 +437,10 @@
 			<Compile Target="BootstrapPackagedGame" Configuration="Shipping" Platform="Win32" Tag="#Build Tools Win64"/>
 			<Compile Target="BootstrapPackagedGame" Configuration="Shipping" Platform="Win64" Tag="#Build Tools Win64"/>
 			<Compile Target="BuildPatchTool" Configuration="Shipping" Platform="Win64" Tag="#Build Tools Win64"/>
-
+			<!-- Improbable begin -->
+			<Compile Target="UnrealVersionSelector" Configuration="Development" Platform="Win64" Tag="#Build Tools Win64"/>
+			<!-- Improbable end -->
+            
 			<Tag Files="Engine/Binaries/Win64/XGEControlWorker.exe" With="#Build Tools Win64"/>
 
 			<Do If="$(EmbedSrcSrvInfo)">
