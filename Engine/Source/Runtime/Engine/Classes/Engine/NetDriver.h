@@ -473,7 +473,7 @@ public:
 	ENGINE_API TSharedPtr<FRepLayout> GetFunctionRepLayout( UFunction * Function );
 
 	/** Creates if necessary, and returns a FRepLayout that maps to the passed in UStruct */
-	TSharedPtr<FRepLayout>		GetStructRepLayout( UStruct * Struct );
+	ENGINE_API TSharedPtr<FRepLayout>		GetStructRepLayout( UStruct * Struct );	// IMPROBABLE-CHANGE - Added ENGINE_API to export this function
 
 	/** Returns the FReplicationChangelistMgr that is associated with the passed in object */
 	TSharedPtr< FReplicationChangelistMgr > GetReplicationChangeListMgr( UObject* Object );
