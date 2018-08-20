@@ -2281,6 +2281,36 @@ void FKismetCompilerContext::FinishCompilingClass(UClass* Class)
 		}
 		Blueprint->bGenerateAbstractClass = (Class->ClassFlags & CLASS_Abstract) == CLASS_Abstract;	
 
+		// IMPROBABLE-BEGIN - Added ESpatialClassFlags
+		if (Blueprint->bSpatialType)
+		{
+			NewClass->SpatialClassFlags |= SPATIALCLASS_GenerateTypeBindings;
+		}
+		TArray<FString> Tags;
+		const TCHAR* Delimiters[] = { TEXT(","), TEXT(" ") };
+		Blueprint->SpatialDescription.ParseIntoArray(Tags, Delimiters, sizeof(Delimiters) / sizeof(TCHAR*));
+		for (auto& Tag : Tags)
+		{
+			if (Tag == TEXT("Singleton"))
+			{
+				NewClass->SpatialClassFlags |= (SPATIALCLASS_Singleton | SPATIALCLASS_GenerateTypeBindings);
+			}
+			else if (Tag == TEXT("ServerOnly"))
+			{
+				NewClass->SpatialClassFlags |= (SPATIALCLASS_ServerOnly | SPATIALCLASS_GenerateTypeBindings);
+			}
+			else
+			{
+				MessageLog.Error(*FString::Printf(TEXT("Invalid spatial tag, %s. Ignoring."), *Tag));
+			}
+		}
+		// Reflect data back to blueprint
+		Blueprint->bSpatialType = (NewClass->SpatialClassFlags & SPATIALCLASS_GenerateTypeBindings);
+		Blueprint->SpatialDescription.Empty();
+		Blueprint->SpatialDescription.Append((NewClass->SpatialClassFlags & SPATIALCLASS_Singleton) ? TEXT("Singleton ") : TEXT(""));
+		Blueprint->SpatialDescription.Append((NewClass->SpatialClassFlags & SPATIALCLASS_ServerOnly) ? TEXT("ServerOnly") : TEXT(""));
+		// IMPROBABLE-END
+
 		// Add the description to the tooltip
 		static const FName NAME_Tooltip(TEXT("Tooltip"));
 		if (!Blueprint->BlueprintDescription.IsEmpty())

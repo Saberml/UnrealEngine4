@@ -29,6 +29,7 @@ namespace
 
 FClassDeclarationMetaData::FClassDeclarationMetaData()
 	: ClassFlags(CLASS_None)
+	, SpatialClassFlags(SPATIALCLASS_None)	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
 	, WantsToBePlaceable(false)
 {
 }
@@ -36,6 +37,7 @@ FClassDeclarationMetaData::FClassDeclarationMetaData()
 void FClassDeclarationMetaData::ParseClassProperties(const TArray<FPropertySpecifier>& InClassSpecifiers, const FString& InRequiredAPIMacroIfPresent)
 {
 	ClassFlags = CLASS_None;
+	SpatialClassFlags = SPATIALCLASS_None;	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
 	// Record that this class is RequiredAPI if the CORE_API style macro was present
 	if (!InRequiredAPIMacroIfPresent.IsEmpty())
 	{
@@ -253,6 +255,28 @@ void FClassDeclarationMetaData::ParseClassProperties(const TArray<FPropertySpeci
 		{
 			MetaData.Add(FName(TEXT("IsConversionRoot")), "true");
 		}
+		// IMPROBABLE-BEGIN - Added ESpatialClassFlags
+		else if (Specifier == TEXT("SpatialType"))
+		{
+			SpatialClassFlags |= SPATIALCLASS_GenerateTypeBindings;
+
+			for (const FString& Value : PropSpecifier.Values)
+			{
+				if (Value == TEXT("Singleton"))
+				{
+					SpatialClassFlags |= SPATIALCLASS_Singleton;
+				}
+				else if (Value == TEXT("ServerOnly"))
+				{
+					SpatialClassFlags |= SPATIALCLASS_ServerOnly;
+				}
+				else
+				{
+					FError::Throwf(TEXT("Unknown spatial class specifier '%s'"), *Value);
+				}
+			}
+		}
+		// IMPROBABLE-END
 		else
 		{
 			FError::Throwf(TEXT("Unknown class specifier '%s'"), *Specifier);
@@ -363,6 +387,7 @@ void FClassDeclarationMetaData::MergeAndValidateClassFlags(const FString& Declar
 	
 	// Now merge all remaining flags/properties
 	Class->ClassFlags |= ClassFlags;
+	Class->SpatialClassFlags |= SpatialClassFlags;	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
 	Class->ClassConfigName = FName(*ConfigName);
 
 	SetAndValidateWithinClass(Class, AllClasses);

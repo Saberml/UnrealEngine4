@@ -2091,6 +2091,11 @@ public:
 	/** Class flags; See EClassFlags for more information */
 	EClassFlags ClassFlags;
 
+	// IMPROBABLE-BEGIN - Added ESpatialClassFlags
+	/** Spatial class flags; See ESpatialClassFlags for more information */
+	ESpatialClassFlags SpatialClassFlags;
+	// IMPROBABLE-END
+
 	/** Cast flags used to accelerate dynamic_cast<T*> on objects of this type for common T */
 	EClassCastFlags ClassCastFlags;
 
@@ -2474,6 +2479,26 @@ public:
 	{
 		return ClassFlags;
 	}
+
+	// IMPROBABLE-BEGIN - Added ESpatialClassFlags
+	/**
+	* Accessors for ESpatialClassFlags. These are duplicates of the EClassFlags accessors
+	*/
+	FORCEINLINE bool HasAnySpatialClassFlags(ESpatialClassFlags FlagsToCheck) const
+	{
+		return EnumHasAnyFlags(SpatialClassFlags, FlagsToCheck) != 0;
+	}
+
+	FORCEINLINE bool HasAllSpatialClassFlags(ESpatialClassFlags FlagsToCheck) const
+	{
+		return EnumHasAllFlags(SpatialClassFlags, FlagsToCheck);
+	}
+
+	FORCEINLINE ESpatialClassFlags GetSpatialClassFlags() const
+	{
+		return SpatialClassFlags;
+	}
+	// IMPROBABLE-END
 
 	/**
 	 * Used to safely check whether the passed in flag is set.

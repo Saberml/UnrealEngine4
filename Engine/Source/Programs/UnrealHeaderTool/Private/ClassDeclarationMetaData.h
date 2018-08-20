@@ -18,6 +18,7 @@ public:
 	FClassDeclarationMetaData();
 
 	EClassFlags ClassFlags;
+	ESpatialClassFlags SpatialClassFlags;	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
 	TMap<FName, FString> MetaData;
 	FString ClassWithin;
 	FString ConfigName;

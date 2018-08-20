@@ -2109,6 +2109,7 @@ void FNativeClassHeaderGenerator::ExportNativeGeneratedInitCode(FOutputDevice& O
 		StaticDefinitions.Logf(TEXT("\t\t&%s::StaticClass,\r\n"), ClassNameCPP);
 		StaticDefinitions.Logf(TEXT("\t\t%s,\r\n"), SingletonsRange);
 		StaticDefinitions.Logf(TEXT("\t\t0x%08Xu,\r\n"), ClassFlags);
+		StaticDefinitions.Logf(TEXT("\t\t0x%08Xu,\r\n"), (uint32)(Class->SpatialClassFlags));	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
 		StaticDefinitions.Logf(TEXT("\t\t%s,\r\n"), (FunctionsToExport.Num() != 0) ? (bAllEditorOnlyFunctions ? TEXT("IF_WITH_EDITOR(FuncInfo, nullptr), IF_WITH_EDITOR(ARRAY_COUNT(FuncInfo), 0)") : TEXT("FuncInfo, ARRAY_COUNT(FuncInfo)")) : TEXT("nullptr, 0"));
 		StaticDefinitions.Logf(TEXT("\t\t%s,\r\n"), *PropertyRange);
 		StaticDefinitions.Logf(TEXT("\t\t%s,\r\n"), (Class->ClassConfigName != NAME_None) ? *CreateUTF8LiteralString(Class->ClassConfigName.ToString()) : TEXT("nullptr"));

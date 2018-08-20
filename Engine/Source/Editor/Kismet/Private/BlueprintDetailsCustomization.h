@@ -758,6 +758,20 @@ protected:
 	/** Returns the tooltip explaining deprecation */
 	FText GetDeprecatedTooltip() const;
 
+	// IMPROBABLE-BEGIN - Added ESpatialClassFlags
+	/** Callback when toggling the Spatial Type checkbox, handles marking a Blueprint as a Spatial Type */
+	void OnSpatialTypeBlueprint(ECheckBoxState InCheckState);
+
+	/** Callback for Spatial Type checkbox, returns checked if the Blueprint is a Spatial Type */
+	ECheckBoxState IsSpatialTypeBlueprint() const;
+
+	/** Callback when modifying the Spatial Description text, handles updating the appropriate Spatial flags */
+	void OnSpatialDescTextCommitted(const FText& NewText, ETextCommit::Type InTextCommit);
+
+	/** Callback for getting Spatial Description text */
+	FText OnGetSpatialDescText() const;
+	// IMPROBABLE-END
+
 	/** Disabled in level and macro Blueprints */
 	bool IsNativizeEnabled() const;
 

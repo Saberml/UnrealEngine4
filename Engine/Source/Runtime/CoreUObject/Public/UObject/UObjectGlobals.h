@@ -2459,6 +2459,7 @@ namespace UE4CodeGen_Private
 		UObject*                           (*const *DependencySingletonFuncArray)();
 		int32                                       NumDependencySingletons;
 		uint32                                      ClassFlags; // EClassFlags
+		uint32                                      SpatialClassFlags; // IMPROBABLE-CHANGE - Added ESpatialClassFlags
 		const FClassFunctionLinkInfo*               FunctionLinkArray;
 		int32                                       NumFunctions;
 		const FPropertyParamsBase* const*           PropertyArray;
