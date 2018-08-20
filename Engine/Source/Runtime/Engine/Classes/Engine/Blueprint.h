@@ -400,6 +400,16 @@ class ENGINE_API UBlueprint : public UBlueprintCore
 	/** Whether or not this blueprint's class is a abstract class or not.  Should set CLASS_Abstract in the KismetCompiler. */
 	UPROPERTY(EditAnywhere, Category = ClassOptions, AdvancedDisplay)
 	uint32 bGenerateAbstractClass : 1;
+	
+	// IMPROBABLE-BEGIN- Added ESpatialClassFlags
+	/** Whether or not this blueprint's class will be analyzed by Spatial.  Should set SPATIALCLASS_GenerateTypeBindings in the KismetCompiler. */
+	UPROPERTY(EditAnywhere, Category = ClassOptions, AdvancedDisplay)
+	uint32 bSpatialType : 1;
+
+	/** Additional spatial info that can modify the ESpatialClassFlags.*/
+	UPROPERTY(EditAnywhere, Category = ClassOptions, AdvancedDisplay)
+	FString SpatialDescription;
+	// IMPROBABLE-END
 
 	/**shows up in the content browser when the blueprint is hovered */
 	UPROPERTY(EditAnywhere, Category=BlueprintOptions, meta=(MultiLine=true))

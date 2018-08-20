@@ -2006,6 +2006,7 @@ void FNativeClassHeaderGenerator::ExportNativeGeneratedInitCode(FOutputDevice& O
 		GeneratedClassRegisterFunctionText.Logf(TEXT("\t\t\t\t&%s::StaticClass,\r\n"), ClassNameCPP);
 		GeneratedClassRegisterFunctionText.Logf(TEXT("\t\t\t\t%s,\r\n"), (Singletons.Len() != 0) ? TEXT("DependentSingletons, ARRAY_COUNT(DependentSingletons)") : TEXT("nullptr, 0"));
 		GeneratedClassRegisterFunctionText.Logf(TEXT("\t\t\t\t0x%08Xu,\r\n"), (uint32)(Class->ClassFlags & CLASS_SaveInCompiledInClasses));
+		GeneratedClassRegisterFunctionText.Logf(TEXT("\t\t\t\t0x%08Xu,\r\n"), (uint32)(Class->SpatialClassFlags));	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
 		GeneratedClassRegisterFunctionText.Logf(TEXT("\t\t\t\t%s,\r\n"), (FunctionsToExport.Num() != 0) ? (bAllEditorOnlyFunctions ? TEXT("IF_WITH_EDITOR(FuncInfo, nullptr), IF_WITH_EDITOR(ARRAY_COUNT(FuncInfo), 0)") : TEXT("FuncInfo, ARRAY_COUNT(FuncInfo)")) : TEXT("nullptr, 0"));
 		GeneratedClassRegisterFunctionText.Logf(TEXT("\t\t\t\t%s,\r\n"), *PropertyRange);
 		GeneratedClassRegisterFunctionText.Logf(TEXT("\t\t\t\t%s,\r\n"), (Class->ClassConfigName != NAME_None) ? *CreateUTF8LiteralString(Class->ClassConfigName.ToString()) : TEXT("nullptr"));

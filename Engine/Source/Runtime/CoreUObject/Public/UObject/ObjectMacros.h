@@ -296,6 +296,20 @@ ENUM_CLASS_FLAGS(EClassFlags);
 
 #define CLASS_AllFlags ((EClassFlags)0xFFFFFFFFu)
 
+// IMPROBABLE-BEGIN - Added ESpatialClassFlags
+enum ESpatialClassFlags
+{
+	SPATIALCLASS_None					= 0x0000u,
+	// Generate spatial interop type bindings for this class
+	SPATIALCLASS_GenerateTypeBindings	= 0x0001u,
+	// This class will be added to the GSM and treated as a singleton
+	SPATIALCLASS_Singleton				= 0x0002u,
+	// This flag can be used in conjunction with Singleton to indicate it's accessible to server-workers only
+	SPATIALCLASS_ServerOnly				= 0x0004u,
+};
+
+ENUM_CLASS_FLAGS(ESpatialClassFlags);
+// IMPROBABLE-END
 
 /**
  * Flags used for quickly casting classes of certain types; all class cast flags are inherited

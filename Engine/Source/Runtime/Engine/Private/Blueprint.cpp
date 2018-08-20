@@ -964,6 +964,20 @@ void UBlueprint::GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const
 	}
 	OutTags.Add( FAssetRegistryTag("ClassFlags", FString::FromInt(ClassFlagsTagged), FAssetRegistryTag::TT_Hidden) );
 
+	// IMPROBABLE-BEGIN - Added ESpatialClassFlags
+	// Add spatial flags in blueprint asset data
+	uint32 SpatialClassFlagsTagged = 0;
+	if (BlueprintClass)
+	{
+		SpatialClassFlagsTagged = BlueprintClass->GetSpatialClassFlags();
+	}
+	else if (GeneratedClass)
+	{
+		SpatialClassFlagsTagged = GeneratedClass->GetSpatialClassFlags();
+	}
+	OutTags.Add( FAssetRegistryTag("SpatialClassFlags", FString::FromInt(SpatialClassFlagsTagged), FAssetRegistryTag::TT_Hidden) );
+	// IMPROBABLE-END
+
 	OutTags.Add( FAssetRegistryTag( "IsDataOnly",
 			FBlueprintEditorUtils::IsDataOnlyBlueprint(this) ? TEXT("True") : TEXT("False"),
 			FAssetRegistryTag::TT_Alphabetical ) );

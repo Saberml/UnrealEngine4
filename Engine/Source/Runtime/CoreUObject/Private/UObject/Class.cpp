@@ -36,6 +36,7 @@
 #include "UObject/CoreRedirects.h"
 #include "Serialization/ArchiveScriptReferenceCollector.h"
 #include "UObject/FrameworkObjectVersion.h"
+#include "SpatialGDKCustomVersion.h"	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
 
 // This flag enables some expensive class tree validation that is meant to catch mutations of 
 // the class tree outside of SetSuperStruct. It has been disabled because loading blueprints 
@@ -3504,6 +3505,16 @@ void UClass::Serialize( FArchive& Ar )
 	{
 		Ar << (uint32&)ClassFlags;
 	}
+
+	// IMPROBABLE-BEGIN - Added ESpatialClassFlags
+	Ar.UsingCustomVersion(FSpatialGDKCustomVersion::GUID);
+	int32 SpatialGDKVersion = Ar.CustomVer(FSpatialGDKCustomVersion::GUID);
+	if (SpatialGDKVersion >= FSpatialGDKCustomVersion::AddedSpatialFlags)
+	{
+		Ar << (uint32&)SpatialClassFlags;
+	}
+	// IMPROBABLE-END
+
 	if (Ar.UE4Ver() < VER_UE4_CLASS_NOTPLACEABLE_ADDED)
 	{
 		// We need to invert the CLASS_NotPlaceable flag here because it used to mean CLASS_Placeable
@@ -3783,6 +3794,7 @@ void UClass::PurgeClass(bool bRecompilingOnLoad)
 	ClassConstructor = nullptr;
 	ClassVTableHelperCtorCaller = nullptr;
 	ClassFlags = CLASS_None;
+	SpatialClassFlags = SPATIALCLASS_None;	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
 	ClassCastFlags = 0;
 	ClassUnique = 0;
 	ClassReps.Empty();
@@ -3878,6 +3890,7 @@ UClass::UClass(const FObjectInitializer& ObjectInitializer)
 ,	ClassUnique(0)
 ,	bCooked(false)
 ,	ClassFlags(CLASS_None)
+,	SpatialClassFlags(SPATIALCLASS_None)	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
 ,	ClassCastFlags(0)
 ,	ClassWithin( UObject::StaticClass() )
 ,	ClassGeneratedBy(nullptr)
@@ -3896,6 +3909,7 @@ UClass::UClass(const FObjectInitializer& ObjectInitializer, UClass* InBaseClass)
 ,	ClassUnique(0)
 ,	bCooked(false)
 ,	ClassFlags(CLASS_None)
+,	SpatialClassFlags(SPATIALCLASS_None)	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
 ,	ClassCastFlags(0)
 ,	ClassWithin(UObject::StaticClass())
 ,	ClassGeneratedBy(nullptr)
@@ -3948,6 +3962,7 @@ UClass::UClass
 ,	ClassUnique				( 0 )
 ,	bCooked					( false )
 ,	ClassFlags				( InClassFlags | CLASS_Native )
+,	SpatialClassFlags		( SPATIALCLASS_None )	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
 ,	ClassCastFlags			( InClassCastFlags )
 ,	ClassWithin				( nullptr )
 ,	ClassGeneratedBy		( nullptr )

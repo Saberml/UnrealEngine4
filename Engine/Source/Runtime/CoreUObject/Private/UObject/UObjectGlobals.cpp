@@ -4512,6 +4512,7 @@ namespace UE4CodeGen_Private
 		UObjectForceRegistration(NewClass);
 
 		NewClass->ClassFlags |= (EClassFlags)(Params.ClassFlags | CLASS_Constructed);
+		NewClass->SpatialClassFlags |= (ESpatialClassFlags)Params.SpatialClassFlags;	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
 		// Make sure the reference token stream is empty since it will be reconstructed later on
 		// This should not apply to intrinsic classes since they emit native references before AssembleReferenceTokenStream is called.
 		if ((NewClass->ClassFlags & CLASS_Intrinsic) != CLASS_Intrinsic)

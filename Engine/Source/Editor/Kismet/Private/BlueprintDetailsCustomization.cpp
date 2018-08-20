@@ -5186,6 +5186,44 @@ FText FBlueprintGlobalOptionsDetails::GetDeprecatedTooltip() const
 	return LOCTEXT("DisabledDeprecateBlueprintTooltip", "This Blueprint is deprecated because of a parent, it is not possible to remove deprecation from it!");
 }
 
+// IMPROBABLE-BEGIN - Added ESpatialClassFlags
+void FBlueprintGlobalOptionsDetails::OnSpatialTypeBlueprint(ECheckBoxState InCheckState)
+{
+	if (UBlueprint* Blueprint = GetBlueprintObj())
+	{
+		Blueprint->bSpatialType = InCheckState == ECheckBoxState::Checked ? true : false;
+		FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+	}
+}
+
+ECheckBoxState FBlueprintGlobalOptionsDetails::IsSpatialTypeBlueprint() const
+{
+	if (UBlueprint* Blueprint = GetBlueprintObj())
+	{
+		return Blueprint->bSpatialType ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
+	}
+	return ECheckBoxState::Unchecked;
+}
+
+void FBlueprintGlobalOptionsDetails::OnSpatialDescTextCommitted(const FText& NewText, ETextCommit::Type InTextCommit)
+{
+	if (UBlueprint* Blueprint = GetBlueprintObj())
+	{
+		Blueprint->SpatialDescription = NewText.ToString();
+		FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+	}
+}
+
+FText FBlueprintGlobalOptionsDetails::OnGetSpatialDescText() const
+{
+	if (UBlueprint* Blueprint = GetBlueprintObj())
+	{
+		return FText::FromString( Blueprint->SpatialDescription );
+	}
+	return FText();
+}
+// IMPROBABLE-END
+
 /** Shared tooltip text for both the label and the value field */
 static FText GetNativizeLabelTooltip()
 {
@@ -5287,6 +5325,53 @@ void FBlueprintGlobalOptionsDetails::CustomizeDetails(IDetailLayoutBuilder& Deta
 					.ToolTipText( this, &FBlueprintGlobalOptionsDetails::GetDeprecatedTooltip )
 				];
 		}
+
+		// IMPROBABLE-BEGIN - Added ESpatialClassFlags
+		// Hide the overloaded spatial properties that require callbacks for
+		static FName SpatialTypePropName(TEXT("bSpatialType"));
+		DetailLayout.HideProperty(DetailLayout.GetProperty(SpatialTypePropName));
+		static FName SpatialDescPropName(TEXT("SpatialDescription"));
+		DetailLayout.HideProperty(DetailLayout.GetProperty(SpatialDescPropName));
+
+		FText SpatialTypeName = FText::FromString(TEXT("Spatial Type"));
+		FText SpatialTypeToolTip = FText::FromString(TEXT("Whether or not this blueprint's class will be analyzed by Spatial."));
+		Category.AddCustomRow( SpatialTypeName, true )
+			.NameContent()
+			[
+				SNew(STextBlock)
+				.Text( SpatialTypeName )
+				.ToolTipText( SpatialTypeToolTip )
+				.Font(IDetailLayoutBuilder::GetDetailFont())
+			]
+			.ValueContent()
+			[
+				SNew(SCheckBox)
+				.IsEnabled( true )
+				.IsChecked( this, &FBlueprintGlobalOptionsDetails::IsSpatialTypeBlueprint )
+				.OnCheckStateChanged( this, &FBlueprintGlobalOptionsDetails::OnSpatialTypeBlueprint )
+				.ToolTipText( SpatialTypeToolTip )
+			];
+
+		FText SpatialDescName = FText::FromString(TEXT("Spatial Description"));
+		FText SpatialDescToolTip = FText::FromString(TEXT("Additional spatial info that can modify the ESpatialClassFlags."));
+		Category.AddCustomRow(SpatialDescName, true)
+			.NameContent()
+			[
+				SNew(STextBlock)
+				.Text(SpatialDescName)
+				.ToolTipText(SpatialDescToolTip)
+				.Font(IDetailLayoutBuilder::GetDetailFont())
+			]
+			.ValueContent()
+			[
+				SNew(SEditableTextBox)
+				.Text(this, &FBlueprintGlobalOptionsDetails::OnGetSpatialDescText)
+				.OnTextCommitted(this, &FBlueprintGlobalOptionsDetails::OnSpatialDescTextCommitted)
+				.ToolTipText(SpatialDescToolTip)
+				.RevertTextOnEscape(true)
+				.Font(IDetailLayoutBuilder::GetDetailFont())
+			];
+		// IMPROBABLE-END
 
 		IDetailCategoryBuilder& PkgCategory = DetailLayout.EditCategory("Packaging", LOCTEXT("BlueprintPackagingCategory", "Packaging"));
 		PkgCategory.AddCustomRow(LOCTEXT("NativizeLabel", "Nativize"))
