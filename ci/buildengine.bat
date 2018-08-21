@@ -10,7 +10,8 @@ call :MarkStartOfBlock "Setup variables"
 
 set UNREAL_REPO_DIR=%~dp0UnrealEngine
 set LINUX_TOOL_CHAIN_ARCHIVE=%UNREAL_REPO_DIR%/v11_clang-5.0.0-centos7.zip
-set LINUX_MULTIARCH_ROOT=%UNREAL_REPO_DIR%/LocalBuilds/Engine/Windows/ClangToolchain/v11_clang-5.0.0-centos7
+set LINUX_MULTIARCH_ROOT=%UNREAL_REPO_DIR%/ClangToolchain
+set LINUX_TOOL_CHAIN_COPY_PATH=%UNREAL_REPO_DIR%/LocalBuilds/Engine/Windows/ClangToolchain/v11_clang-5.0.0-centos7
 
 call :MarkEndOfBlock "Setup variables"
 
@@ -26,7 +27,7 @@ echo %LINUX_TOOL_CHAIN_ARCHIVE%
 
 echo %UNREAL_REPO_DIR%
 
-powershell "Expand-Archive -LiteralPath %LINUX_TOOL_CHAIN_ARCHIVE% -DestinationPath %UNREAL_REPO_DIR%/LocalBuilds/Engine/Windows/ClangToolchain -Force"
+powershell "Expand-Archive -LiteralPath %LINUX_TOOL_CHAIN_ARCHIVE% -DestinationPath %LINUX_MULTIARCH_ROOT% -Force"
 
 call :MarkEndOfBlock "Extract linux toolchain"
 
@@ -58,7 +59,7 @@ call :MarkEndOfBlock "Building the engine"
 
 call :MarkStartOfBlock "Copy cross compilation toolchain"
 
-xcopy /s /i /q /y "%LINUX_MULTIARCH_ROOT%" "LocalBuilds/Engine/Windows/ClangToolchain"
+xcopy /s /i /q /y "%LINUX_MULTIARCH_ROOT%" LINUX_TOOL_CHAIN_COPY_PATH
 
 call :MarkEndOfBlock "Copy cross compilation toolchain"
 
