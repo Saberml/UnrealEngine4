@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AdminDeploymentCustomizations xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/wix/2011/AdminDeployment">
+  <BundleCustomizations TargetDir="C:\Program Files (x86)\Microsoft Visual Studio 14.0" NoCacheOnlyMode="default" NoWeb="default" NoRefresh="default" SuppressRefreshPrompt="default" Feed="default" />
+  <SelectableItemCustomizations>
+    <SelectableItemCustomization Id="VSUV3RTMV1" Hidden="no" Selected="yes" FriendlyName="Visual Studio 2015 Update 3" />
+    <SelectableItemCustomization Id="MicroUpdateV3.5" Selected="yes" FriendlyName="Update for Microsoft Visual Studio 2015 (KB3165756)" />
+    <SelectableItemCustomization Id="VSUV1PreReqV1" Selected="yes" FriendlyName="Visual Studio 2015 Update 1 Prerequisite" />
+    <SelectableItemCustomization Id="NativeLanguageSupport_VCV1" Hidden="no" Selected="yes" FriendlyName="Common Tools for Visual C++ 2015" />
+    <SelectableItemCustomization Id="NativeLanguageSupport_MFCV1" Hidden="no" Selected="yes" FriendlyName="Microsoft Foundation Classes for C++" />
+    <SelectableItemCustomization Id="NativeLanguageSupport_XPV1" Hidden="no" Selected="yes" FriendlyName="Windows XP Support for C++" />
+    <SelectableItemCustomization Id="Win81SDK_HiddenV1" Hidden="no" Selected="yes" FriendlyName="Windows 8.1 SDK and Universal CRT SDK" />
+  </SelectableItemCustomizations>
+</AdminDeploymentCustomizations>
