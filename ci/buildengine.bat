@@ -52,7 +52,7 @@ call :MarkEndOfBlock "Generating project files"
 
 call :MarkStartOfBlock "Building the engine"
 
-"%UNREAL_REPO_DIR%/Engine/Build/BatchFiles/RunUAT.bat" BuildGraph -target="Make Installed Build Win64" -script="%UNREAL_REPO_DIR%/Engine/Build/InstalledEngineBuild.xml" -set:WithDDC="false" -set:WithWin64="true" -set:WithLinux="true" -set:WithWin32="false" -set:WithMac="false" -set:WithAndroid="false" -set:WithIOS="false" -set:WithTVOS="false" -set:WithHTML5="false"
+call "%UNREAL_REPO_DIR%/Engine/Build/BatchFiles/RunUAT.bat" BuildGraph -target="Make Installed Build Win64" -script="%UNREAL_REPO_DIR%/Engine/Build/InstalledEngineBuild.xml" -set:WithDDC="false" -set:WithWin64="true" -set:WithLinux="true" -set:WithWin32="false" -set:WithMac="false" -set:WithAndroid="false" -set:WithIOS="false" -set:WithTVOS="false" -set:WithHTML5="false"
 
 call :MarkEndOfBlock "Building the engine"
 
