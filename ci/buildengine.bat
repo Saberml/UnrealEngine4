@@ -43,6 +43,8 @@ call :MarkStartOfBlock "Setting up file associations"
 
 %UNREAL_REPO_DIR%/Engine/Extras/Redist/en-us/UE4PrereqSetup_x64.exe /quiet
 
+%UNREAL_REPO_DIR%/Engine/Binaries/Win64/UnrealVersionSelector-Win64-Shipping.exe /fileassociations
+
 call :MarkEndOfBlock "Setting up file associations"
 
 call :MarkStartOfBlock "Generating project files"
