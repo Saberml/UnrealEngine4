@@ -98,7 +98,7 @@ struct FNetworkObjectKeyFuncs : BaseKeyFuncs<TSharedPtr<FNetworkObjectInfo>, AAc
 /**
  * Stores the list of replicated actors for a given UNetDriver.
  */
-class FNetworkObjectList
+class ENGINE_API FNetworkObjectList
 {
 public:
 	typedef TSet<TSharedPtr<FNetworkObjectInfo>, FNetworkObjectKeyFuncs> FNetworkObjectSet;
