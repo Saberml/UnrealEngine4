@@ -181,6 +181,11 @@ public:
 	static int32 GetNumberOfClients();
 	static void SetNumberOfClients(int32 NumClients, ETextCommit::Type CommitInfo);
 
+	// IMPROBABLE-BEGIN - Added running of multiple dedicated servers in same process
+	static int32 GetNumberOfServers();
+	static void SetNumberOfServers(int32 NumServers, ETextCommit::Type CommitInfo);
+	// IMPROBABLE-END
+
 	static void OnToggleDedicatedServerPIE();
 	static bool OnIsDedicatedServerPIEEnabled();
 
@@ -858,6 +863,19 @@ TSharedRef< SWidget > FPlayWorldCommands::GeneratePlayMenuContent( TSharedRef<FU
 		if ( PlayInSettings->IsPlayNetDedicatedActive() )
 		{
 			MenuBuilder.AddMenuEntry( FPlayWorldCommands::Get().PlayInNetworkDedicatedServer );
+
+			// IMPROBABLE-BEGIN - Added running of multiple dedicated servers in same process
+			TSharedRef<SWidget> NumServers = SNew(SSpinBox<int32>)	// Copy limits from PlayNumberOfServers meta data
+				.MinValue(1)
+				.MaxValue(TNumericLimits<int32>::Max())
+				.MinSliderValue(1)
+				.MaxSliderValue(5)
+				.ToolTipText(FText::FromString(TEXT("Number of Servers")))
+				.Value(FInternalPlayWorldCommandCallbacks::GetNumberOfServers())
+				.OnValueCommitted_Static(&FInternalPlayWorldCommandCallbacks::SetNumberOfServers);
+
+			MenuBuilder.AddWidget(NumServers, FText::FromString(TEXT("Extremely Experimental. Keep at 1 unless you know what you're doing!")));
+			// IMPROBABLE-END
 		}
 		MenuBuilder.EndSection();
 	}
@@ -2334,6 +2352,24 @@ void FInternalPlayWorldCommandCallbacks::SetNumberOfClients(int32 NumClients, ET
 	PlayInSettings->SaveConfig();
 }
 
+// IMPROBABLE-BEGIN - Added running of multiple dedicated servers in same process
+int32 FInternalPlayWorldCommandCallbacks::GetNumberOfServers()
+{
+	const ULevelEditorPlaySettings* PlayInSettings = GetDefault<ULevelEditorPlaySettings>();
+	int32 PlayNumberOfServers(0);
+	PlayInSettings->GetPlayNumberOfServers(PlayNumberOfServers);	// Ignore 'state' of option (handled externally)
+	return PlayNumberOfServers;
+}
+
+void FInternalPlayWorldCommandCallbacks::SetNumberOfServers(int32 NumServers, ETextCommit::Type CommitInfo)
+{
+	ULevelEditorPlaySettings* PlayInSettings = GetMutableDefault<ULevelEditorPlaySettings>();
+	PlayInSettings->SetPlayNumberOfServers(NumServers);
+
+	PlayInSettings->PostEditChange();
+	PlayInSettings->SaveConfig();
+}
+// IMPROBABLE-END
 
 void FInternalPlayWorldCommandCallbacks::OnToggleDedicatedServerPIE()
 {

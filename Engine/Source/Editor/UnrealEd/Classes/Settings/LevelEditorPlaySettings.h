@@ -301,6 +301,11 @@ private:
 	UPROPERTY(config, EditAnywhere, Category=MultiplayerOptions, meta=(ClampMin = "1", UIMin = "1", UIMax = "64"))
 	int32 PlayNumberOfClients;
 
+	// IMPROBABLE-BEGIN - Added running of multiple dedicated servers in same process
+	UPROPERTY(config, EditAnywhere, Category=MultiplayerOptions, meta=(ClampMin = "1", UIMin = "1", UIMax = "5"))
+	int32 PlayNumberOfServers;
+	// IMPROBABLE-END
+
 	/** What port used by the server for simple networking */
 	UPROPERTY(config, EditAnywhere, Category = MultiplayerOptions, meta=(ClampMin="1", UIMin="1", ClampMax="65535"))
 	uint16 ServerPort;
@@ -368,6 +373,12 @@ public:
 	void SetPlayNumberOfClients( const int32 InPlayNumberOfClients ) { PlayNumberOfClients = InPlayNumberOfClients; }
 	bool IsPlayNumberOfClientsActive() const { return (PlayNetMode != PIE_Standalone) || RunUnderOneProcess; }
 	bool GetPlayNumberOfClients( int32 &OutPlayNumberOfClients ) const { OutPlayNumberOfClients = PlayNumberOfClients; return IsPlayNumberOfClientsActive(); }
+
+	// IMPROBABLE-BEGIN - Added running of multiple dedicated servers in same process
+	void SetPlayNumberOfServers( const int32 InPlayNumberOfServers ) { PlayNumberOfServers = InPlayNumberOfServers; }
+	bool IsPlayNumberOfServersActive() const { return (PlayNetMode != PIE_Standalone) || RunUnderOneProcess; }
+	bool GetPlayNumberOfServers( int32 &OutPlayNumberOfServers ) const { OutPlayNumberOfServers = PlayNumberOfServers; return IsPlayNumberOfServersActive(); }
+	// IMPROBABLE-END
 
 	void SetServerPort(const uint16 InServerPort) { ServerPort = InServerPort; }
 	bool IsServerPortActive() const { return (PlayNetMode != PIE_Standalone) || RunUnderOneProcess; }

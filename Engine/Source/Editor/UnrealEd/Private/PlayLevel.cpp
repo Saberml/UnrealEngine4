@@ -2530,9 +2530,33 @@ void UEditorEngine::SpawnIntraProcessPIEWorlds(bool bAnyBlueprintErrors, bool bS
 	PIEInstance = 1;
 	const bool WillAutoConnectToServer = [&PlayInSettings]{ bool AutoConnectToServer(false); return (PlayInSettings->GetAutoConnectToServer(AutoConnectToServer) && AutoConnectToServer); }();
 	const bool CanPlayNetDedicated = [&PlayInSettings]{ bool PlayNetDedicated(false); return (PlayInSettings->GetPlayNetDedicated(PlayNetDedicated) && PlayNetDedicated); }();
+	// IMPROBABLE-BEGIN - Added running of multiple dedicated servers in same process
+	// This code is duplicated from below to make sure it only executes when dedicated servers are enabled.
+	const int32 PlayNumberOfServers = [&PlayInSettings] { int32 NumberOfServers(0); return (PlayInSettings->GetPlayNumberOfServers(NumberOfServers) ? NumberOfServers : 1); }();
 
 	// Server
-	if (CanPlayNetDedicated || WillAutoConnectToServer)
+	if(CanPlayNetDedicated)
+	{
+		for(int i = 0; i < PlayNumberOfServers; i++)
+		{
+			PlayInSettings->SetPlayNetMode(EPlayNetMode::PIE_ListenServer);
+
+			UGameInstance* const ServerGameInstance = CreatePIEGameInstance(PIEInstance, bInSimulateInEditor, bAnyBlueprintErrors, bStartInSpectatorMode, CanPlayNetDedicated, PIEStartTime);
+			if (ServerGameInstance)
+			{
+				ServerPrefix = ServerGameInstance->GetWorldContext()->PIEPrefix;
+			}
+			else
+			{
+				// Failed, abort
+				return;
+			}
+
+			PIEInstance++;
+		}
+	}
+	// IMPROBABLE-END
+	else if (CanPlayNetDedicated || WillAutoConnectToServer)
 	{
 		PlayInSettings->SetPlayNetMode(EPlayNetMode::PIE_ListenServer);
 
