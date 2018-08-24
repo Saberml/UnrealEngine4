@@ -2464,6 +2464,42 @@ static FString PrivatePropertiesOffsetGetters(const UStruct* Struct, const FStri
 
 	return Result;
 }
+// IMPROBABLE-BEGIN
+FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
+{
+	FUHTStringBuilder Result;
+
+	for (const UProperty* Property : TFieldRange<UProperty>(Struct, EFieldIteratorFlags::ExcludeSuper))
+	{
+		if (Property->IsA<UArrayProperty>())
+		{
+			const UArrayProperty* ArrayProperty = Cast<const UArrayProperty>(Property);
+			UProperty* InnerProperty = ArrayProperty->Inner;
+
+			if (InnerProperty->IsA<UObjectPropertyBase>())
+			{
+				FString PropertyName = Property->GetName();
+				Result.Logf(TEXT("\tTArray<improbable::unreal::UnrealObjectRef*> %s_Context;") LINE_TERMINATOR, *PropertyName);
+			}
+		}
+		else if (Property->IsA<UObjectPropertyBase>())
+		{
+			if (Property->ArrayDim > 1)
+			{
+				FString PropertyName = Property->GetName();
+				Result.Logf(TEXT("\tTArray<improbable::unreal::UnrealObjectRef*> %s_Context;") LINE_TERMINATOR, *PropertyName);
+			}
+			else
+			{
+				FString PropertyName = Property->GetName();
+				Result.Logf(TEXT("\timprobable::unreal::UnrealObjectRef* %s_Context;") LINE_TERMINATOR, *PropertyName);
+			}
+		}
+	}
+
+	return Result;
+}
+// IMPROBABLE-END
 
 void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 	FOutputDevice&           OutGeneratedHeaderText,
@@ -2551,6 +2587,7 @@ void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 	}
 
 	FString PPOMacroName;
+	FString ObjectRefsMacroName;
 
 	// Replication, add in the declaration for GetLifetimeReplicatedProps() automatically if there are any net flagged properties
 	bool bNeedsRep = false;
@@ -2737,6 +2774,14 @@ void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 				PPOMacroName = FString::Printf(TEXT("\t%s\r\n"), *PPOMacroNameRaw);
 				WriteMacro(OutGeneratedHeaderText, PPOMacroNameRaw, PrivatePropertiesOffsets);
 			}
+			// IMPROBABLE_BEGIN
+			{
+				const FString ObjectRefs = GenerateImprobableObjectRefsMacro(Class);
+				const FString ObjectRefsMacroNameRaw = SourceFile.GetGeneratedMacroName(ClassData, TEXT("_IMPROBABLE_OBJECT_REFS"));
+				ObjectRefsMacroName = FString::Printf(TEXT("\t%s\r\n"), *ObjectRefsMacroNameRaw);
+				WriteMacro(OutGeneratedHeaderText, ObjectRefsMacroNameRaw, ObjectRefs);
+			}
+			// IMPROBABLE_END
 		}
 	}
 
@@ -2760,10 +2805,12 @@ void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 		auto GeneratedBodyLine = bIsIInterface ? ClassData->GetInterfaceGeneratedBodyLine() : ClassData->GetGeneratedBodyLine();
 		auto LegacyGeneratedBody = FString(bIsIInterface ? TEXT("") : PPOMacroName)
 			+ ClassMacroCalls
-			+ (bIsIInterface ? TEXT("") : StandardUObjectConstructorsMacroCall);
+			+ (bIsIInterface ? TEXT("") : StandardUObjectConstructorsMacroCall)
+			+ ObjectRefsMacroName;
 		auto GeneratedBody = FString(bIsIInterface ? TEXT("") : PPOMacroName)
 			+ ClassNoPureDeclsMacroCalls
-			+ (bIsIInterface ? TEXT("") : EnhancedUObjectConstructorsMacroCall);
+			+ (bIsIInterface ? TEXT("") : EnhancedUObjectConstructorsMacroCall)
+			+ ObjectRefsMacroName;
 
 		auto WrappedLegacyGeneratedBody = DeprecationWarning + DeprecationPushString + Public + LegacyGeneratedBody + Public + DeprecationPopString;
 		auto WrappedGeneratedBody = FString(DeprecationPushString) + Public + GeneratedBody + GetPreservedAccessSpecifierString(Class) + DeprecationPopString;
@@ -3062,7 +3109,11 @@ void FNativeClassHeaderGenerator::ExportGeneratedStructBodyMacros(FOutputDevice&
 		const FString PrivatePropertiesOffset = PrivatePropertiesOffsetGetters(Struct, StructNameCPP);
 		const FString SuperTypedef = BaseStruct ? FString::Printf(TEXT("\ttypedef %s Super;\r\n"), NameLookupCPP.GetNameCPP(BaseStruct)) : FString();
 
-		const FString CombinedLine = FriendLine + StaticClassLine + PrivatePropertiesOffset + SuperTypedef;
+		// IMPROBABLE-BEGIN
+		const FString ObjectRefs = GenerateImprobableObjectRefsMacro(Struct);
+		// IMPROBABLE-END
+
+		const FString CombinedLine = FriendLine + StaticClassLine + PrivatePropertiesOffset + SuperTypedef + ObjectRefs;
 		const FString MacroName = SourceFile.GetGeneratedBodyMacroName(Struct->StructMacroDeclaredLineNumber);
 
 		const FString Macroized = Macroize(*MacroName, *CombinedLine);
@@ -4783,6 +4834,7 @@ FNativeClassHeaderGenerator::FNativeClassHeaderGenerator(
 			TEXT("#error \"%s.generated.h already included, missing '#pragma once' in %s.h\"")	LINE_TERMINATOR
 			TEXT("#endif")																		LINE_TERMINATOR
 			TEXT("#define %s")																	LINE_TERMINATOR
+			TEXT("namespace improbable{ namespace unreal { class UnrealObjectRef; } }")			LINE_TERMINATOR
 			LINE_TERMINATOR,
 			*SourceFile->GetFileDefineName(), *SourceFile->GetStrippedFilename(), *SourceFile->GetStrippedFilename(), *SourceFile->GetFileDefineName());
 
@@ -5152,7 +5204,7 @@ bool FNativeClassHeaderGenerator::SaveHeaderIfChanged(const TCHAR* HeaderPath, c
 	// Remember this header filename to be able to check for any old (unused) headers later.
 	PackageHeaderPaths.Add(FString(HeaderPath).Replace(TEXT("\\"), TEXT("/"), ESearchCase::CaseSensitive));
 
-	return bHasChanged;
+	return true;
 }
 
 /**
