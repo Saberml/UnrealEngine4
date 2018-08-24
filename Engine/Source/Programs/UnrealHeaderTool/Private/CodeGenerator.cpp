@@ -2464,6 +2464,42 @@ static FString PrivatePropertiesOffsetGetters(const UStruct* Struct, const FStri
 
 	return Result;
 }
+// IMPROBABLE-BEGIN
+FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
+{
+	FUHTStringBuilder Result;
+
+	for (const UProperty* Property : TFieldRange<UProperty>(Struct, EFieldIteratorFlags::ExcludeSuper))
+	{
+		if (Property->IsA<UArrayProperty>())
+		{
+			const UArrayProperty* ArrayProperty = Cast<const UArrayProperty>(Property);
+			UProperty* InnerProperty = ArrayProperty->Inner;
+
+			if (InnerProperty->IsA<UObjectPropertyBase>())
+			{
+				FString PropertyName = Property->GetName();
+				Result.Logf(TEXT("\tTArray<improbable::unreal::UnrealObjectRef*> %s_Context;") LINE_TERMINATOR, *PropertyName);
+			}
+		}
+		else if (Property->IsA<UObjectPropertyBase>())
+		{
+			if (Property->ArrayDim > 1)
+			{
+				FString PropertyName = Property->GetName();
+				Result.Logf(TEXT("\tTArray<improbable::unreal::UnrealObjectRef*> %s_Context;") LINE_TERMINATOR, *PropertyName);
+			}
+			else
+			{
+				FString PropertyName = Property->GetName();
+				Result.Logf(TEXT("\timprobable::unreal::UnrealObjectRef* %s_Context;") LINE_TERMINATOR, *PropertyName);
+			}
+		}
+	}
+
+	return Result;
+}
+// IMPROBABLE-END
 
 // IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 FString GenerateSpatialOSContextMacro(const UStruct* Struct)
@@ -5221,7 +5257,7 @@ bool FNativeClassHeaderGenerator::SaveHeaderIfChanged(const TCHAR* HeaderPath, c
 	// Remember this header filename to be able to check for any old (unused) headers later.
 	PackageHeaderPaths.Add(FString(HeaderPath).Replace(TEXT("\\"), TEXT("/"), ESearchCase::CaseSensitive));
 
-	return bHasChanged;
+	return true;
 }
 
 /**
