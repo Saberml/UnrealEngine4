@@ -2886,7 +2886,7 @@ int32 FRepLayout::InitFromProperty_r( UProperty * Property, int32 Offset, int32 
 	{
 		UScriptStruct * Struct = StructProp->Struct;
 
-		if ( Struct->StructFlags & STRUCT_NetDeltaSerializeNative )
+		if ( IsCustomDeltaProperty(StructProp) )	// IMPROBABLE-CHANGE - Disabled NetDeltaSerialize
 		{
 			// Custom delta serializers handles outside of FRepLayout
 			return RelativeHandle;
