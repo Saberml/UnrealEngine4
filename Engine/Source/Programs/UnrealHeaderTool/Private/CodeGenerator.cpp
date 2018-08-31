@@ -2479,7 +2479,7 @@ FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 			if (InnerProperty->IsA<UObjectPropertyBase>())
 			{
 				FString PropertyName = Property->GetName();
-				Result.Logf(TEXT("\tTArray<improbable::unreal::UnrealObjectRef*> %s_Context;") LINE_TERMINATOR, *PropertyName);
+				Result.Logf(TEXT("\tTArray<const improbable::unreal::UnrealObjectRef*> %s_Context;") LINE_TERMINATOR, *PropertyName);
 			}
 		}
 		else if (Property->IsA<UObjectPropertyBase>())
@@ -2487,12 +2487,12 @@ FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 			if (Property->ArrayDim > 1)
 			{
 				FString PropertyName = Property->GetName();
-				Result.Logf(TEXT("\tTArray<improbable::unreal::UnrealObjectRef*> %s_Context;") LINE_TERMINATOR, *PropertyName);
+				Result.Logf(TEXT("\tTArray<const improbable::unreal::UnrealObjectRef*> %s_Context;") LINE_TERMINATOR, *PropertyName);
 			}
 			else
 			{
 				FString PropertyName = Property->GetName();
-				Result.Logf(TEXT("\timprobable::unreal::UnrealObjectRef* %s_Context;") LINE_TERMINATOR, *PropertyName);
+				Result.Logf(TEXT("\tconst improbable::unreal::UnrealObjectRef* %s_Context;") LINE_TERMINATOR, *PropertyName);
 			}
 		}
 	}
