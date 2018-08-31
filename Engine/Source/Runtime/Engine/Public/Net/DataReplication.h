@@ -23,12 +23,16 @@ class UNetDriver;
 
 bool FORCEINLINE IsCustomDeltaProperty( const UProperty* Property )
 {
-	const UStructProperty * StructProperty = Cast< UStructProperty >( Property );
-
-	if ( StructProperty != NULL && StructProperty->Struct->StructFlags & STRUCT_NetDeltaSerializeNative )
-	{
-		return true;
-	}
+	// IMPROBABLE-BEGIN - Disabled NetDeltaSerialize
+	// Use this as the choke point for disabling net delta serialize
+	//
+	// 	const UStructProperty * StructProperty = Cast< UStructProperty >( Property );
+	// 
+	// 	if ( StructProperty != NULL && StructProperty->Struct->StructFlags & STRUCT_NetDeltaSerializeNative )
+	// 	{
+	// 		return true;
+	// 	}
+	// IMPROBABLE-END
 
 	return false;
 }
