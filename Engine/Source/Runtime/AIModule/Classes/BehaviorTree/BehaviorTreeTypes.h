@@ -289,7 +289,7 @@ struct FBehaviorTreeInstanceId
 struct FBehaviorTreeSearchData;
 
 /** data required for instance of single subtree */
-struct FBehaviorTreeInstance
+struct AIMODULE_API FBehaviorTreeInstance
 {
 	/** root node in template */
 	UBTCompositeNode* RootNode;
@@ -338,6 +338,10 @@ struct FBehaviorTreeInstance
 
 	/** check if instance has active node with given execution index */
 	bool HasActiveNode(uint16 TestExecutionIndex) const;
+
+	/* IMPROBABLE-BEGIN */
+	UBTNode* GetNodeByExecutionIndex(uint16 ExecutionIndex) const;
+	/* IMPROBABLE-END */
 
 	/** deactivate all active aux nodes and remove their requests from SearchData */
 	void DeactivateNodes(FBehaviorTreeSearchData& SearchData, uint16 InstanceIndex);

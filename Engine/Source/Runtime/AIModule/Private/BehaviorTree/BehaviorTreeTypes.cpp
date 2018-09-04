@@ -170,6 +170,18 @@ bool FBehaviorTreeInstance::HasActiveNode(uint16 TestExecutionIndex) const
 	return false;
 }
 
+/* IMPROBABLE-BEGIN */
+UBTNode* FBehaviorTreeInstance::GetNodeByExecutionIndex(uint16 ExecutionIndex) const
+{
+	UBTNode* TargetNode = RootNode;
+	while (TargetNode && TargetNode->GetExecutionIndex() != ExecutionIndex)
+	{
+		TargetNode = TargetNode->GetNextNode();
+	}
+	return TargetNode && TargetNode->GetExecutionIndex() == ExecutionIndex ? TargetNode : nullptr;
+}
+/* IMPROBABLE-END */
+
 void FBehaviorTreeInstance::DeactivateNodes(FBehaviorTreeSearchData& SearchData, uint16 InstanceIndex)
 {
 	for (int32 Idx = SearchData.PendingUpdates.Num() - 1; Idx >= 0; Idx--)
