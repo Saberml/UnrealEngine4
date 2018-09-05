@@ -3547,7 +3547,7 @@ void FHeaderParser::GetVarType(
 	// IMPROBABLE-BEGIN - Error if a variable is both replicated and handover
 	if ((Flags & CPF_Net) != 0 && (Flags & CPF_Handover) != 0)
 	{
-		UE_LOG_ERROR_UHT(TEXT("Property cannot be both replicated and handover."));
+		UE_LOG_ERROR_UHT(TEXT("Property cannot be both replicated and handover. See handover guide in SpatialOS GDK for Unreal docs."));
 	}
 	// IMPROBABLE-END
 
