@@ -189,7 +189,7 @@ typedef TSharedPtr<class FSavedMove_Character> FSavedMovePtr;
  * @see https://docs.unrealengine.com/latest/INT/Gameplay/Framework/Pawn/Character/
  */
 
-UCLASS()
+UCLASS(SpatialType) // IMPROBABLE-CHANGE - Add SpatialType tag
 class ENGINE_API UCharacterMovementComponent : public UPawnMovementComponent, public IRVOAvoidanceInterface, public INetworkPredictionInterface
 {
 	GENERATED_BODY()
