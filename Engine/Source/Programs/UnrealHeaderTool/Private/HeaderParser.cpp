@@ -3556,6 +3556,13 @@ void FHeaderParser::GetVarType(
 		}
 	}
 
+	// IMPROBABLE-BEGIN - Error if a variable is both replicated and handover
+	if ((Flags & CPF_Net) != 0 && (Flags & CPF_Handover) != 0)
+	{
+		UE_LOG_ERROR_UHT(TEXT("Property cannot be both replicated and handover."));
+	}
+	// IMPROBABLE-END
+
 	// If we saw a BlueprintGetter but did not see BlueprintSetter or 
 	// or BlueprintReadWrite then treat as BlueprintReadOnly
 	if (bSeenBlueprintGetterSpecifier && !bSeenBlueprintWriteSpecifier)
