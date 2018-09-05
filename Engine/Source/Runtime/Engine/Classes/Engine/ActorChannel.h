@@ -240,7 +240,7 @@ public:
 	// --------------------------------
 
 	/** Replicates given subobject on this actor channel */
-	bool ReplicateSubobject(UObject *Obj, FOutBunch &Bunch, const FReplicationFlags &RepFlags);
+	virtual bool ReplicateSubobject(UObject *Obj, FOutBunch &Bunch, const FReplicationFlags &RepFlags);	// IMPROBABLE-CHANGE - Make virtual
 
 	/** utility template for replicating list of replicated subobjects */
 	template<typename Type>
