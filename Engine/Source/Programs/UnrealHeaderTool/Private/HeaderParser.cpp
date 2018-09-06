@@ -2851,10 +2851,6 @@ void FHeaderParser::VerifyRepNotifyCallback(UProperty* Prop, UFunction* TargetFu
 }
 void FHeaderParser::VerifyPropertyMarkups( UClass* TargetClass )
 {
-	if (TargetClass->GetName() == TEXT("TestUObjectContexts"))
-	{
-		UE_LOG_ERROR_UHT(TEXT("sgsdgsfg"));
-	}
 	// Iterate over all properties, looking for those flagged as CPF_RepNotify
 	for ( UField* Field = TargetClass->Children; Field; Field = Field->Next )
 	{
@@ -4569,15 +4565,6 @@ UProperty* FHeaderParser::GetVarNameAndDim
 	{
 		FString VarName(VarProperty.Identifier);
 
-		if (VarName == TEXT("ObjRefStub"))
-		{
-			UE_LOG_WARNING_UHT(TEXT("bljkjkljkljklb"));
-			if (UStruct* FoundType = FindObject<UScriptStruct>(ANY_PACKAGE, TEXT("UnrealObjectRefStub")))
-			{
-				UE_LOG_WARNING_UHT(TEXT("shshhshhthh"));
-			}
-		}
-
 		const int32 DeprecatedIndex = VarName.Find(TEXT("_DEPRECATED"));
 		const int32 NativizedPropertyPostfixIndex = VarName.Find(TEXT("__pf")); //TODO: check OverrideNativeName in Meta Data, to be sure it's not a random occurrence of the "__pf" string.
 		bool bIgnoreDeprecatedWord = (NativizedPropertyPostfixIndex != INDEX_NONE) && (NativizedPropertyPostfixIndex > DeprecatedIndex);
@@ -4821,6 +4808,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			NewMapKeyProperty = CreateVariableProperty(*VarProperty.MapKeyProp, NewScope, *(PropertyName.ToString() + TEXT("_Key")), ObjectFlags, VariableCategory, CurrentSrcFile);
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 		else if (VarProperty.IsObject() && VariableCategory == EVariableCategory::Member
 			&& !(VarProperty.PropertyFlags & CPF_RepSkip) && VarProperty.Type != CPT_Interface)
@@ -4841,6 +4829,9 @@ UProperty* FHeaderParser::GetVarNameAndDim
 				const FString VarName(VarProperty.Identifier);
 
 =======
+=======
+		// IMPROBABLE-BEGIN
+>>>>>>> More cleanup
 		else if (VarProperty.IsObject())
 		{
 			FString VarName(VarProperty.Identifier);
@@ -4880,7 +4871,11 @@ UProperty* FHeaderParser::GetVarNameAndDim
 				NewObjectRefProperty = CreateVariableProperty(ObjRefProp, Scope, ObjRefPropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
 			}
 		}
+<<<<<<< HEAD
 >>>>>>> Got the header tool to produce a uproperty for the context
+=======
+		// IMPROBABLE-END
+>>>>>>> More cleanup
 
 		NewProperty = CreateVariableProperty(VarProperty, NewScope, PropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
 
@@ -4949,10 +4944,14 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			Scope->Children = NewProperty;
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 =======
 
 >>>>>>> Got the header tool to produce a uproperty for the context
+=======
+		// IMPROBABLE-BEGIN
+>>>>>>> More cleanup
 		if (NewObjectRefProperty)
 		{
 			//Add the Object ref to the property list.
@@ -4971,9 +4970,13 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			AddMetaDataToClassData(NewObjectRefProperty, VarProperty.MetaData);
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		// IMPROBABLE-END
 =======
 >>>>>>> Got the header tool to produce a uproperty for the context
+=======
+		// IMPROBABLE-END
+>>>>>>> More cleanup
 	}
 
 	VarProperty.TokenProperty = NewProperty;
@@ -4985,7 +4988,6 @@ UProperty* FHeaderParser::GetVarNameAndDim
 
 	// if we had any metadata, add it to the class
 	AddMetaDataToClassData(VarProperty.TokenProperty, VarProperty.MetaData);
-
 	return NewProperty;
 }
 
