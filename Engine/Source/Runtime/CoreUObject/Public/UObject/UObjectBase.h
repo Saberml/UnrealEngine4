@@ -13,16 +13,6 @@
 
 DECLARE_DWORD_COUNTER_STAT_EXTERN(TEXT("STAT_UObjectsStatGroupTester"), STAT_UObjectsStatGroupTester, STATGROUP_UObjects, COREUOBJECT_API);
 
-// IMPROBABLE-BEGIN
-namespace improbable
-{
-	namespace unreal
-	{
-		class UnrealObjectRef;
-	}
-}
-// IMPROBABLE-END
-
 class COREUOBJECT_API UObjectBase
 {
 	friend class UObjectBaseUtility;
@@ -70,10 +60,6 @@ public:
 	 * Emit GC tokens for UObjectBase, this might be UObject::StaticClass or Default__Class
 	 **/
 	static void EmitBaseReferences(UClass *RootClass);
-
-	// IMPROBABLE-BEGIN
-	improbable::unreal::UnrealObjectRef* ImpObjectRef;
-	// IMPROBABLE-END
 
 protected:
 	/**

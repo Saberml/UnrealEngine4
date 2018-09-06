@@ -2593,7 +2593,9 @@ void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 	}
 
 	FString PPOMacroName;
+	// IMPROBABLE-BEGIN
 	FString ObjectRefsMacroName;
+	// IMPROBABLE-END
 
 	// Replication, add in the declaration for GetLifetimeReplicatedProps() automatically if there are any net flagged properties
 	bool bNeedsRep = false;
@@ -2811,12 +2813,16 @@ void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 		auto GeneratedBodyLine = bIsIInterface ? ClassData->GetInterfaceGeneratedBodyLine() : ClassData->GetGeneratedBodyLine();
 		auto LegacyGeneratedBody = FString(bIsIInterface ? TEXT("") : PPOMacroName)
 			+ ClassMacroCalls
+			// IMPROBABLE-BEGIN
 			+ (bIsIInterface ? TEXT("") : StandardUObjectConstructorsMacroCall)
 			+ ObjectRefsMacroName;
+			// IMPROBABLE-END
 		auto GeneratedBody = FString(bIsIInterface ? TEXT("") : PPOMacroName)
 			+ ClassNoPureDeclsMacroCalls
+			// IMPROBABLE-BEGIN
 			+ (bIsIInterface ? TEXT("") : EnhancedUObjectConstructorsMacroCall)
 			+ ObjectRefsMacroName;
+			// IMPROBABLE-END
 
 		auto WrappedLegacyGeneratedBody = DeprecationWarning + DeprecationPushString + Public + LegacyGeneratedBody + Public + DeprecationPopString;
 		auto WrappedGeneratedBody = FString(DeprecationPushString) + Public + GeneratedBody + GetPreservedAccessSpecifierString(Class) + DeprecationPopString;
@@ -3117,9 +3123,8 @@ void FNativeClassHeaderGenerator::ExportGeneratedStructBodyMacros(FOutputDevice&
 
 		// IMPROBABLE-BEGIN
 		const FString ObjectRefs = GenerateImprobableObjectRefsMacro(Struct);
-		// IMPROBABLE-END
-
 		const FString CombinedLine = FriendLine + StaticClassLine + PrivatePropertiesOffset + SuperTypedef + ObjectRefs;
+		// IMPROBABLE-END
 		const FString MacroName = SourceFile.GetGeneratedBodyMacroName(Struct->StructMacroDeclaredLineNumber);
 
 		const FString Macroized = Macroize(*MacroName, *CombinedLine);
@@ -4840,8 +4845,9 @@ FNativeClassHeaderGenerator::FNativeClassHeaderGenerator(
 			TEXT("#error \"%s.generated.h already included, missing '#pragma once' in %s.h\"")	LINE_TERMINATOR
 			TEXT("#endif")																		LINE_TERMINATOR
 			TEXT("#define %s")																	LINE_TERMINATOR
-			TEXT("namespace improbable{ namespace unreal { class UnrealObjectRef; } }")			LINE_TERMINATOR
+			// IMPROBABLE-BEGIN
 			TEXT("#include \"UnrealObjectRefStub.h\"")			LINE_TERMINATOR
+			// IMPROBABLE-END
 			LINE_TERMINATOR,
 			*SourceFile->GetFileDefineName(), *SourceFile->GetStrippedFilename(), *SourceFile->GetStrippedFilename(), *SourceFile->GetFileDefineName());
 
@@ -5211,7 +5217,7 @@ bool FNativeClassHeaderGenerator::SaveHeaderIfChanged(const TCHAR* HeaderPath, c
 	// Remember this header filename to be able to check for any old (unused) headers later.
 	PackageHeaderPaths.Add(FString(HeaderPath).Replace(TEXT("\\"), TEXT("/"), ESearchCase::CaseSensitive));
 
-	return true;
+	return bHasChanged;
 }
 
 /**
