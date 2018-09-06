@@ -2851,10 +2851,6 @@ void FHeaderParser::VerifyRepNotifyCallback(UProperty* Prop, UFunction* TargetFu
 }
 void FHeaderParser::VerifyPropertyMarkups( UClass* TargetClass )
 {
-	if (TargetClass->GetName() == TEXT("TestUObjectContexts"))
-	{
-		UE_LOG_ERROR_UHT(TEXT("sgsdgsfg"));
-	}
 	// Iterate over all properties, looking for those flagged as CPF_RepNotify
 	for ( UField* Field = TargetClass->Children; Field; Field = Field->Next )
 	{
@@ -4569,15 +4565,6 @@ UProperty* FHeaderParser::GetVarNameAndDim
 	{
 		FString VarName(VarProperty.Identifier);
 
-		if (VarName == TEXT("ObjRefStub"))
-		{
-			UE_LOG_WARNING_UHT(TEXT("bljkjkljkljklb"));
-			if (UStruct* FoundType = FindObject<UScriptStruct>(ANY_PACKAGE, TEXT("UnrealObjectRefStub")))
-			{
-				UE_LOG_WARNING_UHT(TEXT("shshhshhthh"));
-			}
-		}
-
 		const int32 DeprecatedIndex = VarName.Find(TEXT("_DEPRECATED"));
 		const int32 NativizedPropertyPostfixIndex = VarName.Find(TEXT("__pf")); //TODO: check OverrideNativeName in Meta Data, to be sure it's not a random occurrence of the "__pf" string.
 		bool bIgnoreDeprecatedWord = (NativizedPropertyPostfixIndex != INDEX_NONE) && (NativizedPropertyPostfixIndex > DeprecatedIndex);
@@ -4792,7 +4779,9 @@ UProperty* FHeaderParser::GetVarNameAndDim
 		UMapProperty*   Map               = nullptr;
 		USetProperty*   Set               = nullptr; // TODO: Set Property
 		UProperty*      NewMapKeyProperty = nullptr;
+		// IMPROBABLE-BEGIN
 		UProperty*		NewObjectRefProperty = nullptr;
+		// IMPROBABLE-END
 		UObject*        NewScope          = Scope;
 		int32           ArrayDim          = 1; // 1 = not a static array, 2 = static array
 		if (VarProperty.ArrayType == EArrayType::Dynamic)
@@ -4818,6 +4807,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			ObjectFlags       = RF_Public;
 			NewMapKeyProperty = CreateVariableProperty(*VarProperty.MapKeyProp, NewScope, *(PropertyName.ToString() + TEXT("_Key")), ObjectFlags, VariableCategory, CurrentSrcFile);
 		}
+		// IMPROBABLE-BEGIN
 		else if (VarProperty.IsObject())
 		{
 			FString VarName(VarProperty.Identifier);
@@ -4844,6 +4834,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 				NewObjectRefProperty = CreateVariableProperty(ObjRefProp, Scope, ObjRefPropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
 			}
 		}
+		// IMPROBABLE-END
 
 		NewProperty = CreateVariableProperty(VarProperty, NewScope, PropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
 
@@ -4911,7 +4902,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			NewProperty->Next = Scope->Children;
 			Scope->Children = NewProperty;
 		}
-
+		// IMPROBABLE-BEGIN
 		if (NewObjectRefProperty)
 		{
 			//Add the Object ref to the property list.
@@ -4929,6 +4920,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			// if we had any metadata, add it to the class
 			AddMetaDataToClassData(NewObjectRefProperty, VarProperty.MetaData);
 		}
+		// IMPROBABLE-END
 	}
 
 	VarProperty.TokenProperty = NewProperty;
@@ -4940,7 +4932,6 @@ UProperty* FHeaderParser::GetVarNameAndDim
 
 	// if we had any metadata, add it to the class
 	AddMetaDataToClassData(VarProperty.TokenProperty, VarProperty.MetaData);
-
 	return NewProperty;
 }
 
