@@ -5263,7 +5263,7 @@ bool FNativeClassHeaderGenerator::SaveHeaderIfChanged(const TCHAR* HeaderPath, c
 	// Remember this header filename to be able to check for any old (unused) headers later.
 	PackageHeaderPaths.Add(FString(HeaderPath).Replace(TEXT("\\"), TEXT("/"), ESearchCase::CaseSensitive));
 
-	return true;
+	return bHasChanged;
 }
 
 /**
