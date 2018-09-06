@@ -177,8 +177,11 @@ public:
 
 	/* IMPROBABLE-BEGIN */
 	FBehaviorTreeInstance* GetInstance(uint16 Idx);
+	FBehaviorTreeInstanceId& GetKnownInstance(uint16 Idx);
+	TArray<UBTNode*>& GetNodeInstances();
 	int32 GetInstanceNum() const;
-	void ClearBeforeHandover();
+	void ResetTreeForHandover(TArray<UBehaviorTree*> TreeAssets);
+	uint8 bStartRootNode : 1;
 	/* IMPROBABLE-END */
 
 	/** get index of active instance on stack */
@@ -416,17 +419,14 @@ FORCEINLINE FBehaviorTreeInstance* UBehaviorTreeComponent::GetInstance(uint16 Id
 	return &InstanceStack[Idx];
 }
 
+FORCEINLINE FBehaviorTreeInstanceId& UBehaviorTreeComponent::GetKnownInstance(uint16 Idx)
+{
+	return KnownInstances[GetInstance(Idx)->InstanceIdIndex];
+}
+
 FORCEINLINE int32 UBehaviorTreeComponent::GetInstanceNum() const
 {
 	return InstanceStack.Num();
-}
-
-FORCEINLINE void UBehaviorTreeComponent::ClearBeforeHandover()
-{
-	ExecutionRequest = FBTNodeExecutionInfo();
-	PendingExecution = FBTPendingExecutionInfo();
-	UnregisterAuxNodesUpTo(FBTNodeIndex(0, 0));
-	//ResumeLogic(TEXT("received spatial authority: resuming BT"));
 }
 /* IMPROBABLE-END */
 

@@ -59,6 +59,7 @@ UBehaviorTreeComponent::UBehaviorTreeComponent(const FObjectInitializer& ObjectI
 	bWantsInitializeComponent = true; 
 	bIsRunning = false;
 	bIsPaused = false;
+	bStartRootNode = true;  // IMPROBABLE-CHANGE
 }
 
 UBehaviorTreeComponent::UBehaviorTreeComponent(FVTableHelper& Helper)
@@ -1902,19 +1903,29 @@ bool UBehaviorTreeComponent::PushInstance(UBehaviorTree& TreeAsset)
 		ActiveInstanceIdx = InstanceStack.Num() - 1;
 
 		// start root level services now (they won't be removed on looping tree anyway)
-		for (int32 ServiceIndex = 0; ServiceIndex < RootNode->Services.Num(); ServiceIndex++)
+		/* IMPROBABLE-CHANGE -- Don't start root level services on handover
+		*/
+		if (bStartRootNode)
 		{
-			UBTService* ServiceNode = RootNode->Services[ServiceIndex];
-			uint8* NodeMemory = (uint8*)ServiceNode->GetNodeMemory<uint8>(InstanceStack[ActiveInstanceIdx]);
+			for (int32 ServiceIndex = 0; ServiceIndex < RootNode->Services.Num(); ServiceIndex++)
+			{
+				UBTService* ServiceNode = RootNode->Services[ServiceIndex];
+				uint8* NodeMemory = (uint8*)ServiceNode->GetNodeMemory<uint8>(InstanceStack[ActiveInstanceIdx]);
 
-			InstanceStack[ActiveInstanceIdx].ActiveAuxNodes.Add(ServiceNode);
-			ServiceNode->WrappedOnBecomeRelevant(*this, NodeMemory);
+				InstanceStack[ActiveInstanceIdx].ActiveAuxNodes.Add(ServiceNode);
+				ServiceNode->WrappedOnBecomeRelevant(*this, NodeMemory);
+			}
 		}
 
 		FBehaviorTreeDelegates::OnTreeStarted.Broadcast(*this, TreeAsset);
 
 		// start new task
-		RequestExecution(RootNode, ActiveInstanceIdx, RootNode, 0, EBTNodeResult::InProgress);
+		/* IMPROBABLE-CHANGE -- Don't start execution of root node if we were handed over; instead, resume at previous node
+		*/
+		if (bStartRootNode)
+		{
+			RequestExecution(RootNode, ActiveInstanceIdx, RootNode, 0, EBTNodeResult::InProgress);
+		}
 		return true;
 	}
 
@@ -2642,3 +2653,32 @@ bool UBehaviorTreeComponent::IsDebuggerActive()
 	return false;
 #endif
 }
+
+/* IMPROBABLE-BEGIN */
+void UBehaviorTreeComponent::ResetTreeForHandover(TArray<UBehaviorTree*> TreeAssets)
+{
+	RemoveAllInstances();
+	for (UBehaviorTree* TreeAsset : TreeAssets)
+	{
+		if (TreeAsset != nullptr)
+		{
+			PushInstance(*TreeAsset);
+		}
+	}
+	bIsRunning = true;
+	/*ExecutionRequest = FBTNodeExecutionInfo();
+	PendingExecution = FBTPendingExecutionInfo();
+	TaskMessageObservers.Reset();
+	InstanceStack.Reset();
+	SearchData.Reset();
+	ActiveInstanceIdx = 0;
+	UnregisterAuxNodesUpTo(FBTNodeIndex(0, 0));*/
+	//bStartRootNode = true;
+	//ResumeLogic(TEXT("received spatial authority: resuming BT"));
+}
+
+TArray<UBTNode*>& UBehaviorTreeComponent::GetNodeInstances()
+{
+	return NodeInstances;
+}
+/* IMPROBABLE-END */

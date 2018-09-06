@@ -131,6 +131,7 @@ namespace EBTFlowAbortMode
 	};
 }
 
+UENUM()  // IMPROBABLE-CHANGE
 namespace EBTActiveNode
 {
 	// keep in sync with DescribeActiveNode()
@@ -143,6 +144,7 @@ namespace EBTActiveNode
 	};
 }
 
+UENUM()  // IMPROBABLE-CHANGE
 namespace EBTTaskStatus
 {
 	// keep in sync with DescribeTaskStatus()
