@@ -870,11 +870,11 @@ TSharedRef< SWidget > FPlayWorldCommands::GeneratePlayMenuContent( TSharedRef<FU
 				.MaxValue(TNumericLimits<int32>::Max())
 				.MinSliderValue(1)
 				.MaxSliderValue(5)
-				.ToolTipText(FText::FromString(TEXT("Number of Servers")))
+				.ToolTipText(FText::FromString(TEXT("Extremely Experimental. Keep at 1 unless you know what you're doing!")))
 				.Value(FInternalPlayWorldCommandCallbacks::GetNumberOfServers())
 				.OnValueCommitted_Static(&FInternalPlayWorldCommandCallbacks::SetNumberOfServers);
 
-			MenuBuilder.AddWidget(NumServers, FText::FromString(TEXT("Extremely Experimental. Keep at 1 unless you know what you're doing!")));
+			MenuBuilder.AddWidget(NumServers, FText::FromString(TEXT("Number of Servers")));
 			// IMPROBABLE-END
 		}
 		MenuBuilder.EndSection();
