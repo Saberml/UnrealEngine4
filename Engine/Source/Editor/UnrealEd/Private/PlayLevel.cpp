@@ -2508,10 +2508,9 @@ void UEditorEngine::SpawnIntraProcessPIEWorlds(bool bAnyBlueprintErrors, bool bS
 	// Server
 	if(CanPlayNetDedicated)
 	{
+		PlayInSettings->SetPlayNetMode(EPlayNetMode::PIE_ListenServer);
 		for(int i = 0; i < PlayNumberOfServers; i++)
 		{
-			PlayInSettings->SetPlayNetMode(EPlayNetMode::PIE_ListenServer);
-
 			UGameInstance* const ServerGameInstance = CreatePIEGameInstance(PIEInstance, bInSimulateInEditor, bAnyBlueprintErrors, bStartInSpectatorMode, CanPlayNetDedicated, PIEStartTime);
 			if (ServerGameInstance)
 			{
