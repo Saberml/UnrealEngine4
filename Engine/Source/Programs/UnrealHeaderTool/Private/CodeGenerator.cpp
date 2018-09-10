@@ -2471,31 +2471,34 @@ FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 
 	for (const UProperty* Property : TFieldRange<UProperty>(Struct, EFieldIteratorFlags::ExcludeSuper))
 	{
-		if (Property->IsA<UArrayProperty>())
+		if (Property->GetPropertyFlags() & CPF_Net)
 		{
-			const UArrayProperty* ArrayProperty = Cast<const UArrayProperty>(Property);
-			UProperty* InnerProperty = ArrayProperty->Inner;
+			if (Property->IsA<UArrayProperty>())
+			{
+				const UArrayProperty* ArrayProperty = Cast<const UArrayProperty>(Property);
+				UProperty* InnerProperty = ArrayProperty->Inner;
 
-			if (InnerProperty->IsA<UObjectPropertyBase>())
-			{
-				FString PropertyName = Property->GetName();
-				Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
-				Result.Logf(TEXT("\tTArray<FUnrealObjectRefStub> %s_Context;") LINE_TERMINATOR, *PropertyName);
+				if (InnerProperty->IsA<UObjectPropertyBase>())
+				{
+					FString PropertyName = Property->GetName();
+					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
+					Result.Logf(TEXT("\tTArray<FUnrealObjectRefStub> %s_Context;") LINE_TERMINATOR, *PropertyName);
+				}
 			}
-		}
-		else if (Property->IsA<UObjectPropertyBase>())
-		{
-			if (Property->ArrayDim > 1)
+			else if (Property->IsA<UObjectPropertyBase>())
 			{
-				FString PropertyName = Property->GetName();
-				Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
-				Result.Logf(TEXT("\tTArray<FUnrealObjectRefStub> %s_Context;") LINE_TERMINATOR, *PropertyName);
-			}
-			else
-			{
-				FString PropertyName = Property->GetName();
-				Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
-				Result.Logf(TEXT("\tFUnrealObjectRefStub %s_Context;") LINE_TERMINATOR, *PropertyName);
+				if (Property->ArrayDim > 1)
+				{
+					FString PropertyName = Property->GetName();
+					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
+					Result.Logf(TEXT("\tTArray<FUnrealObjectRefStub> %s_Context;") LINE_TERMINATOR, *PropertyName);
+				}
+				else
+				{
+					FString PropertyName = Property->GetName();
+					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
+					Result.Logf(TEXT("\tFUnrealObjectRefStub %s_Context;") LINE_TERMINATOR, *PropertyName);
+				}
 			}
 		}
 	}

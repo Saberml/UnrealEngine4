@@ -4808,31 +4808,28 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			NewMapKeyProperty = CreateVariableProperty(*VarProperty.MapKeyProp, NewScope, *(PropertyName.ToString() + TEXT("_Key")), ObjectFlags, VariableCategory, CurrentSrcFile);
 		}
 		// IMPROBABLE-BEGIN
-		else if (VarProperty.IsObject())
+		else if (VarProperty.IsObject() && VariableCategory == EVariableCategory::Member && VarProperty.PropertyFlags & CPF_Net)
 		{
 			FString VarName(VarProperty.Identifier);
 
-			if (VarName == TEXT("BasicUObject"))
-			{
-				FPropertyBase ObjRefProp(EPropertyType::CPT_Struct);
-				ObjRefProp.ArrayType = EArrayType::None;
-				ObjRefProp.PropertyFlags = 18014398509481984;
-				ObjRefProp.ImpliedPropertyFlags = 0;
-				ObjRefProp.RefQualifier = ERefQualifier::None;
-				ObjRefProp.MapKeyProp = nullptr;
-				ObjRefProp.PropertyExportFlags = 2;
-				ObjRefProp.Struct = FindObject<UScriptStruct>(ANY_PACKAGE, TEXT("UnrealObjectRefStub"));
-				ObjRefProp.MetaClass = nullptr;
-				ObjRefProp.DelegateName = NAME_None;
-				ObjRefProp.DelegateSignatureOwnerClass = nullptr;
-				ObjRefProp.RepNotifyName = NAME_None;
-				ObjRefProp.MetaData = VarProperty.MetaData;
-				ObjRefProp.PointerType = EPointerType::None;
-				ObjRefProp.IntType = EIntType::None;
+			FPropertyBase ObjRefProp(EPropertyType::CPT_Struct);
+			ObjRefProp.ArrayType = EArrayType::None;
+			ObjRefProp.PropertyFlags = 18014398509481984;
+			ObjRefProp.ImpliedPropertyFlags = 0;
+			ObjRefProp.RefQualifier = ERefQualifier::None;
+			ObjRefProp.MapKeyProp = nullptr;
+			ObjRefProp.PropertyExportFlags = 2;
+			ObjRefProp.Struct = FindObject<UScriptStruct>(ANY_PACKAGE, TEXT("UnrealObjectRefStub"));
+			ObjRefProp.MetaClass = nullptr;
+			ObjRefProp.DelegateName = NAME_None;
+			ObjRefProp.DelegateSignatureOwnerClass = nullptr;
+			ObjRefProp.RepNotifyName = NAME_None;
+			ObjRefProp.MetaData = VarProperty.MetaData;
+			ObjRefProp.PointerType = EPointerType::None;
+			ObjRefProp.IntType = EIntType::None;
 
-				FName ObjRefPropertyName = *(PropertyName.ToString().Append(FString(TEXT("_Context"))));
-				NewObjectRefProperty = CreateVariableProperty(ObjRefProp, Scope, ObjRefPropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
-			}
+			FName ObjRefPropertyName = *(PropertyName.ToString().Append(FString(TEXT("_Context"))));
+			NewObjectRefProperty = CreateVariableProperty(ObjRefProp, Scope, ObjRefPropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
 		}
 		// IMPROBABLE-END
 
