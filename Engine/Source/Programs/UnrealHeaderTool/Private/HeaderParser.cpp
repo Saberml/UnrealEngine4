@@ -4807,8 +4807,6 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			ObjectFlags       = RF_Public;
 			NewMapKeyProperty = CreateVariableProperty(*VarProperty.MapKeyProp, NewScope, *(PropertyName.ToString() + TEXT("_Key")), ObjectFlags, VariableCategory, CurrentSrcFile);
 		}
-<<<<<<< HEAD
-<<<<<<< HEAD
 		// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 		else if (VarProperty.IsObject() && VariableCategory == EVariableCategory::Member
 			&& !(VarProperty.PropertyFlags & CPF_RepSkip) && VarProperty.Type != CPT_Interface)
@@ -4828,30 +4826,14 @@ UProperty* FHeaderParser::GetVarNameAndDim
 				// from an existing UProperty that referenced an FUnrealObjectRef.
 				const FString VarName(VarProperty.Identifier);
 
-=======
-=======
-		// IMPROBABLE-BEGIN
->>>>>>> More cleanup
-		else if (VarProperty.IsObject())
-		{
-			FString VarName(VarProperty.Identifier);
-
-			if (VarName == TEXT("BasicUObject"))
-			{
->>>>>>> Got the header tool to produce a uproperty for the context
 				FPropertyBase ObjRefProp(EPropertyType::CPT_Struct);
 				ObjRefProp.ArrayType = EArrayType::None;
 				ObjRefProp.PropertyFlags = 18014398509481984;
 				ObjRefProp.ImpliedPropertyFlags = 0;
 				ObjRefProp.RefQualifier = ERefQualifier::None;
 				ObjRefProp.MapKeyProp = nullptr;
-<<<<<<< HEAD
 				ObjRefProp.PropertyExportFlags = EPropertyHeaderExportFlags::PROPEXPORT_Public;
 				ObjRefProp.Struct = FindObject<UScriptStruct>(ANY_PACKAGE, TEXT("UnrealObjectRef"));
-=======
-				ObjRefProp.PropertyExportFlags = 2;
-				ObjRefProp.Struct = FindObject<UScriptStruct>(ANY_PACKAGE, TEXT("UnrealObjectRefStub"));
->>>>>>> Got the header tool to produce a uproperty for the context
 				ObjRefProp.MetaClass = nullptr;
 				ObjRefProp.DelegateName = NAME_None;
 				ObjRefProp.DelegateSignatureOwnerClass = nullptr;
@@ -4860,22 +4842,11 @@ UProperty* FHeaderParser::GetVarNameAndDim
 				ObjRefProp.PointerType = EPointerType::None;
 				ObjRefProp.IntType = EIntType::None;
 
-<<<<<<< HEAD
 				const FName ObjRefPropertyName = *(PropertyName.ToString().Append(FString(TEXT("_SpatialOSContext"))));
 				NewObjectRefProperty = CreateVariableProperty(ObjRefProp, Scope, ObjRefPropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
 			}
 		}
 		// IMPROBABLE-END
-=======
-				FName ObjRefPropertyName = *(PropertyName.ToString().Append(FString(TEXT("_Context"))));
-				NewObjectRefProperty = CreateVariableProperty(ObjRefProp, Scope, ObjRefPropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
-			}
-		}
-<<<<<<< HEAD
->>>>>>> Got the header tool to produce a uproperty for the context
-=======
-		// IMPROBABLE-END
->>>>>>> More cleanup
 
 		NewProperty = CreateVariableProperty(VarProperty, NewScope, PropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
 
@@ -4943,15 +4914,8 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			NewProperty->Next = Scope->Children;
 			Scope->Children = NewProperty;
 		}
-<<<<<<< HEAD
-<<<<<<< HEAD
-		// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
-=======
 
->>>>>>> Got the header tool to produce a uproperty for the context
-=======
-		// IMPROBABLE-BEGIN
->>>>>>> More cleanup
+		// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 		if (NewObjectRefProperty)
 		{
 			//Add the Object ref to the property list.
@@ -4969,14 +4933,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			// if we had any metadata, add it to the class
 			AddMetaDataToClassData(NewObjectRefProperty, VarProperty.MetaData);
 		}
-<<<<<<< HEAD
-<<<<<<< HEAD
 		// IMPROBABLE-END
-=======
->>>>>>> Got the header tool to produce a uproperty for the context
-=======
-		// IMPROBABLE-END
->>>>>>> More cleanup
 	}
 
 	VarProperty.TokenProperty = NewProperty;
