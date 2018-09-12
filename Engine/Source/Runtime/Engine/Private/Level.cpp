@@ -1683,7 +1683,24 @@ void ULevel::InitializeNetworkActors()
 						//  -RemoteRole != ROLE_None
 						Actor->ExchangeNetRoles(true);
 					}
-				}				
+				}	
+				
+				// IMPROBABLE-BEGIN - Deletion of Startup Actors
+				// These Actors are important to the level. Don't destroy them.
+				if (Actor->GetClass()->IsChildOf<AWorldSettings>() || Actor->GetClass()->IsChildOf<ALevelScriptActor>())
+				{
+					continue;
+				}
+
+				// If not in the Editor, and Actor is a Startup Actor, destroy it
+				if(OwningWorld->WorldType != EWorldType::EditorPreview && OwningWorld->WorldType != EWorldType::Editor)
+				{
+					if (Actor->GetIsReplicated() && !Actor->IsPendingKill() && Actor->IsFullNameStableForNetworking())
+					{
+						Actor->Destroy(true);
+					}
+				}
+				// IMPROBABLE-END
 			}
 
 			Actor->bActorSeamlessTraveled = false;
