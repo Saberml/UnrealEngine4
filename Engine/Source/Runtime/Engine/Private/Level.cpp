@@ -1700,7 +1700,7 @@ void ULevel::InitializeNetworkActors()
 	check( OwningWorld );
 	bool			bIsServer				= OwningWorld->IsServer();
 
-    // IMPROBABLE-BEGIN - Deletion of Startup Actors
+    	// IMPROBABLE-BEGIN - Deletion of Startup Actors
 	// Check if we are using Spatial Networking
 	bool bUsingSpatialNetworking = GEngine->NetDriverDefinitions.ContainsByPredicate([](const FNetDriverDefinition* NetDriverDefinition)
 	{
@@ -1748,7 +1748,7 @@ void ULevel::InitializeNetworkActors()
 				}				
 			}
 
-    		// IMPROBABLE-BEGIN - Deletion of Startup Actors
+    			// IMPROBABLE-BEGIN - Deletion of Startup Actors
 			// Make sure we are using Spatial Networking
 			if(!bUsingSpatialNetworking)
 			{
