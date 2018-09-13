@@ -1722,7 +1722,6 @@ void ULevel::InitializeNetworkActors()
 	}
 }
 
-
 void ULevel::InitializeRenderingResources()
 {
 	// OwningWorld can be NULL when InitializeRenderingResources is called during undo, where a transient ULevel is created to allow undoing level move operations
@@ -2243,4 +2242,5 @@ bool ULevel::HasVisibilityChangeRequestPending() const
 {
 	return (OwningWorld && ( this == OwningWorld->CurrentLevelPendingVisibility || this == OwningWorld->CurrentLevelPendingInvisibility ) );
 }
+
 
