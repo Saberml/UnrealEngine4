@@ -1648,9 +1648,9 @@ void ULevel::InitializeNetworkActors()
 
     	// IMPROBABLE-BEGIN - Deletion of Startup Actors
 	// Check if we are using Spatial Networking
-	bool bUsingSpatialNetworking = GEngine->NetDriverDefinitions.ContainsByPredicate([](const FNetDriverDefinition* NetDriverDefinition)
+	bool bUsingSpatialNetworking = GEngine->NetDriverDefinitions.ContainsByPredicate([](FNetDriverDefinition NetDriverDefinition)
 	{
-		return NetDriverDefinition->DriverClassName.ToString().Contains(TEXT("SpatialNetDriver"));
+		return NetDriverDefinition.DriverClassName.ToString().Contains(TEXT("SpatialNetDriver"));
 	});
 	// IMPROBABLE-END
 
@@ -1698,7 +1698,7 @@ void ULevel::InitializeNetworkActors()
 			// Make sure we are using Spatial Networking
 			if(!bUsingSpatialNetworking)
 			{
-				return;	
+				continue;	
 			}
 
 			// Don't want to destroy these Actors.
