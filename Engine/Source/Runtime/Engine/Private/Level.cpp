@@ -1700,7 +1700,7 @@ void ULevel::InitializeNetworkActors()
 	check( OwningWorld );
 	bool			bIsServer				= OwningWorld->IsServer();
 
-    	// IMPROBABLE-BEGIN - Deletion of Startup Actors
+    // IMPROBABLE-BEGIN - Deletion of Startup Actors
 	// Check if we are using Spatial Networking
 	bool bUsingSpatialNetworking = GEngine->NetDriverDefinitions.ContainsByPredicate([](FNetDriverDefinition NetDriverDefinition)
 	{
@@ -1748,7 +1748,7 @@ void ULevel::InitializeNetworkActors()
 				}				
 			}
 
-    			// IMPROBABLE-BEGIN - Deletion of Startup Actors
+    		// IMPROBABLE-BEGIN - Deletion of Startup Actors
 			// Make sure we are using Spatial Networking
 			if(!bUsingSpatialNetworking)
 			{
@@ -1762,7 +1762,9 @@ void ULevel::InitializeNetworkActors()
 			}
 
 			// If not in the Editor, and Actor is a Startup Actor, destroy it
-			if(OwningWorld->WorldType != EWorldType::EditorPreview && OwningWorld->WorldType != EWorldType::Editor)
+			if (OwningWorld->WorldType == EWorldType::PIE
+				|| OwningWorld->WorldType == EWorldType::Game
+				|| OwningWorld->WorldType == EWorldType::GamePreview)
 			{
 				if (Actor->GetIsReplicated() && !Actor->IsPendingKill() && Actor->IsFullNameStableForNetworking())
 				{
