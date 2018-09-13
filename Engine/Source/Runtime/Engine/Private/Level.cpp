@@ -1776,6 +1776,7 @@ void ULevel::InitializeNetworkActors()
 	}
 }
 
+
 void ULevel::InitializeRenderingResources()
 {
 	// OwningWorld can be NULL when InitializeRenderingResources is called during undo, where a transient ULevel is created to allow undoing level move operations
