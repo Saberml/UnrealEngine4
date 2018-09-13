@@ -1646,6 +1646,14 @@ void ULevel::InitializeNetworkActors()
 	check( OwningWorld );
 	bool			bIsServer				= OwningWorld->IsServer();
 
+    // IMPROBABLE-BEGIN - Deletion of Startup Actors
+	// Check if we are using Spatial Networking
+	bool bUsingSpatialNetworking = GEngine->NetDriverDefinitions.ContainsByPredicate([](FNetDriverDefinition NetDriverDefinition)
+	{
+		return NetDriverDefinition.DriverClassName.ToString().Contains(TEXT("SpatialNetDriver"));
+	});
+	// IMPROBABLE-END
+
 	// Kill non relevant client actors and set net roles correctly
 	for( int32 ActorIndex=0; ActorIndex<Actors.Num(); ActorIndex++ )
 	{
@@ -1686,6 +1694,31 @@ void ULevel::InitializeNetworkActors()
 				}				
 			}
 
+    		// IMPROBABLE-BEGIN - Deletion of Startup Actors
+			// Make sure we are using Spatial Networking
+			if(!bUsingSpatialNetworking)
+			{
+				continue;	
+			}
+
+			// Don't want to destroy these Actors.
+			if (Actor->GetClass()->IsChildOf<AWorldSettings>() || Actor->GetClass()->IsChildOf<ALevelScriptActor>())
+			{
+				continue;
+			}
+
+			// If not in the Editor, and Actor is a Startup Actor, destroy it
+			if (OwningWorld->WorldType == EWorldType::PIE
+				|| OwningWorld->WorldType == EWorldType::Game
+				|| OwningWorld->WorldType == EWorldType::GamePreview)
+			{
+				if (Actor->GetIsReplicated() && !Actor->IsPendingKill() && Actor->IsFullNameStableForNetworking())
+				{
+					Actor->Destroy(true);
+				}
+			}
+			// IMPROBABLE-END
+            
 			Actor->bActorSeamlessTraveled = false;
 		}
 	}
