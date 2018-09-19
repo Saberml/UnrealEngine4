@@ -13,6 +13,8 @@
 #include "UObject/UnrealType.h"
 #include "UObject/GCObject.h"
 
+#include "Engine/Engine.h"	// IMPROBABLE-CHANGE - Added include
+
 class FNetFieldExportGroup;
 class FOutBunch;
 class FRepChangelistState;
@@ -24,15 +26,19 @@ class UNetDriver;
 bool FORCEINLINE IsCustomDeltaProperty( const UProperty* Property )
 {
 	// IMPROBABLE-BEGIN - Disabled NetDeltaSerialize
-	// Use this as the choke point for disabling net delta serialize
-	//
-	// 	const UStructProperty * StructProperty = Cast< UStructProperty >( Property );
-	// 
-	// 	if ( StructProperty != NULL && StructProperty->Struct->StructFlags & STRUCT_NetDeltaSerializeNative )
-	// 	{
-	// 		return true;
-	// 	}
+	check(GEngine);
+	if ( GEngine->IsUsingSpatialNetDriver() )
+	{
+		return false;
+	}
 	// IMPROBABLE-END
+
+	const UStructProperty * StructProperty = Cast< UStructProperty >( Property );
+	 
+	if ( StructProperty != NULL && StructProperty->Struct->StructFlags & STRUCT_NetDeltaSerializeNative )
+	{
+	 	return true;
+	}
 
 	return false;
 }

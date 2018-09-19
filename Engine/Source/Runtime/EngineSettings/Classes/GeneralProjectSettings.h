@@ -98,4 +98,7 @@ class ENGINESETTINGS_API UGeneralProjectSettings
 
 	UPROPERTY(config, EditAnywhere, Category = Settings)
 	bool bAllowMinimize;
+
+	UPROPERTY(config, EditAnywhere, Category = Settings)
+	bool bSpatialNetworking;
 };

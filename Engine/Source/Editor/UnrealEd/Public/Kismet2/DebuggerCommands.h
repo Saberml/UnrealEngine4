@@ -91,6 +91,7 @@ public:
 	TSharedPtr<FUICommandInfo> PlayInSettings;
 	TSharedPtr<FUICommandInfo> PlayInNetworkSettings;
 	TSharedPtr<FUICommandInfo> PlayInNetworkDedicatedServer;
+	TSharedPtr<FUICommandInfo> PlayInSpatialNetworking; // IMPROBABLE-CHANGE - Enabled toggling Spatial networking from the engine
 
 	TArray< TSharedPtr< FUICommandInfo > > PlayInTargetedMobilePreviewDevices;
 

@@ -15,6 +15,7 @@
 #include "EditorStyleSet.h"
 #include "Classes/EditorStyleSettings.h"
 #include "GameFramework/Actor.h"
+#include "GeneralProjectSettings.h"
 #include "Settings/LevelEditorPlaySettings.h"
 #include "Editor/UnrealEdEngine.h"
 #include "Settings/EditorExperimentalSettings.h"
@@ -181,6 +182,11 @@ public:
 	static int32 GetNumberOfClients();
 	static void SetNumberOfClients(int32 NumClients, ETextCommit::Type CommitInfo);
 
+	// IMPROBABLE-BEGIN - Enabled toggling Spatial networking from the engine
+	static void OnToggleSpatialNetworking();
+	static bool OnIsSpatialNetworkingEnabled();
+	// IMPROBABLE-END
+
 	// IMPROBABLE-BEGIN - Added running of multiple dedicated servers in same process
 	static int32 GetNumberOfServers();
 	static void SetNumberOfServers(int32 NumServers, ETextCommit::Type CommitInfo);
@@ -329,6 +335,7 @@ void FPlayWorldCommands::RegisterCommands()
 	UI_COMMAND( PlayInDefaultPlayerStart, "Default Player Start", "Spawn the player at the map's default player start", EUserInterfaceActionType::RadioButton, FInputChord() );
 	UI_COMMAND( PlayInNetworkSettings, "Network Settings...", "Open the settings for the 'Play In' feature", EUserInterfaceActionType::Button, FInputChord() );
 	UI_COMMAND( PlayInNetworkDedicatedServer, "Run Dedicated Server", "If checked, a separate dedicated server will be launched. Otherwise the first player will act as a listen server that all other players connect to.", EUserInterfaceActionType::ToggleButton, FInputChord() );
+	UI_COMMAND( PlayInSpatialNetworking, "Spatial Networking", "If checked, the SpatialOS networking is used. Otherwise, native Unreal networking is used.", EUserInterfaceActionType::ToggleButton, FInputChord() ); // IMPROBABLE-CHANGE - Enabled toggling Spatial networking from the engine
 	UI_COMMAND( PlayInSettings, "Advanced Settings...", "Open the settings for the 'Play In' feature", EUserInterfaceActionType::Button, FInputChord() );
 
 	// SIE & PIE controls
@@ -579,6 +586,14 @@ void FPlayWorldCommands::BindGlobalPlayWorldCommands()
 		FCanExecuteAction(),
 		FIsActionChecked::CreateStatic( &FInternalPlayWorldCommandCallbacks::OnIsDedicatedServerPIEEnabled ) 
 		);
+
+	// IMPROBABLE-BEGIN - Enabled toggling Spatial networking from the engine
+	ActionList.MapAction( Commands.PlayInSpatialNetworking,
+		FExecuteAction::CreateStatic( &FInternalPlayWorldCommandCallbacks::OnToggleSpatialNetworking ),
+		FCanExecuteAction(),
+		FIsActionChecked::CreateStatic( &FInternalPlayWorldCommandCallbacks::OnIsSpatialNetworkingEnabled )
+		);
+	// IMPROBABLE-END
 
 	AddPIEPreviewDeviceActions(Commands, ActionList);
 }
@@ -864,17 +879,19 @@ TSharedRef< SWidget > FPlayWorldCommands::GeneratePlayMenuContent( TSharedRef<FU
 		{
 			MenuBuilder.AddMenuEntry( FPlayWorldCommands::Get().PlayInNetworkDedicatedServer );
 
+			MenuBuilder.AddMenuEntry( FPlayWorldCommands::Get().PlayInSpatialNetworking ); // IMPROBABLE-CHANGE - Enabled toggling Spatial networking from the engine
+
 			// IMPROBABLE-BEGIN - Added running of multiple dedicated servers in same process
 			TSharedRef<SWidget> NumServers = SNew(SSpinBox<int32>)	// Copy limits from PlayNumberOfServers meta data
 				.MinValue(1)
 				.MaxValue(TNumericLimits<int32>::Max())
 				.MinSliderValue(1)
 				.MaxSliderValue(5)
-				.ToolTipText(FText::FromString(TEXT("Extremely Experimental. Keep at 1 unless you know what you're doing!")))
+				.ToolTipText(LOCTEXT( "NumberOfServersToolTip", "Extremely Experimental. Keep at 1 unless you know what you're doing!" ))
 				.Value(FInternalPlayWorldCommandCallbacks::GetNumberOfServers())
 				.OnValueCommitted_Static(&FInternalPlayWorldCommandCallbacks::SetNumberOfServers);
 
-			MenuBuilder.AddWidget(NumServers, FText::FromString(TEXT("Number of Servers")));
+			MenuBuilder.AddWidget(NumServers, LOCTEXT( "NumberOfServersMenuWidget", "Number of Servers" ));
 			// IMPROBABLE-END
 		}
 		MenuBuilder.EndSection();
@@ -2351,6 +2368,24 @@ void FInternalPlayWorldCommandCallbacks::SetNumberOfClients(int32 NumClients, ET
 	PlayInSettings->PostEditChange();
 	PlayInSettings->SaveConfig();
 }
+
+// IMPROBABLE-BEGIN - Enabled toggling Spatial networking from the engine
+void FInternalPlayWorldCommandCallbacks::OnToggleSpatialNetworking()
+{
+	UGeneralProjectSettings* GeneralProjectSettings = GetMutableDefault<UGeneralProjectSettings>();
+
+	GeneralProjectSettings->bSpatialNetworking = !GeneralProjectSettings->bSpatialNetworking;
+
+	UProperty* SpatialNetworkingProperty = UGeneralProjectSettings::StaticClass()->FindPropertyByName(FName("bSpatialNetworking"));
+
+	GeneralProjectSettings->UpdateSinglePropertyInConfigFile(SpatialNetworkingProperty, GeneralProjectSettings->GetDefaultConfigFilename());
+}
+
+bool FInternalPlayWorldCommandCallbacks::OnIsSpatialNetworkingEnabled()
+{
+	return GetDefault<UGeneralProjectSettings>()->bSpatialNetworking;
+}
+// IMPROBABLE-END
 
 // IMPROBABLE-BEGIN - Added running of multiple dedicated servers in same process
 int32 FInternalPlayWorldCommandCallbacks::GetNumberOfServers()
