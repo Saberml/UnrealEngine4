@@ -1646,12 +1646,8 @@ void ULevel::InitializeNetworkActors()
 	check( OwningWorld );
 	bool			bIsServer				= OwningWorld->IsServer();
 
-    // IMPROBABLE-BEGIN - Deletion of Startup Actors
-	// Check if we are using Spatial Networking
-	bool bUsingSpatialNetworking = GEngine->NetDriverDefinitions.ContainsByPredicate([](FNetDriverDefinition NetDriverDefinition)
-	{
-		return NetDriverDefinition.DriverClassName.ToString().Contains(TEXT("SpatialNetDriver"));
-	});
+	// IMPROBABLE-BEGIN - Deletion of Startup Actors
+	bool bUsingSpatialNetworking = GEngine->IsUsingSpatialNetDriver();
 	// IMPROBABLE-END
 
 	// Kill non relevant client actors and set net roles correctly
@@ -1694,7 +1690,7 @@ void ULevel::InitializeNetworkActors()
 				}				
 			}
 
-    		// IMPROBABLE-BEGIN - Deletion of Startup Actors
+			// IMPROBABLE-BEGIN - Deletion of Startup Actors
 			// Make sure we are using Spatial Networking
 			if(!bUsingSpatialNetworking)
 			{

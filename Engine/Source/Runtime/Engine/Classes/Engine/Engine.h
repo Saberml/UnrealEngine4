@@ -2711,6 +2711,10 @@ public:
 	void DestroyNamedNetDriver(UWorld *InWorld, FName NetDriverName);
 	void DestroyNamedNetDriver(UPendingNetGame *PendingNetGame, FName NetDriverName);
 
+	// IMPROBABLE-BEGIN - Added helper function to determine if Spatial networking is active
+	bool IsUsingSpatialNetDriver() const;
+	// IMPROBABLE-END
+
 	virtual bool NetworkRemapPath( UNetDriver* Driver, FString &Str, bool bReading=true) { return false; }
 	virtual bool NetworkRemapPath( UPendingNetGame *PendingNetGame, FString &Str, bool bReading=true) { return false; }
 

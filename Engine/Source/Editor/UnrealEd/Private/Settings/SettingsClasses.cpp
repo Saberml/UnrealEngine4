@@ -374,7 +374,7 @@ ULevelEditorPlaySettings::ULevelEditorPlaySettings( const FObjectInitializer& Ob
 	ClientWindowWidth = 640;
 	ClientWindowHeight = 480;
 	PlayNumberOfClients = 1;
-	PlayNumberOfServers = 1;
+	PlayNumberOfServers = 1; // IMPROBABLE-CHANGE - Added running of multiple dedicated servers in same process
 	ServerPort = 17777;
 	PlayNetDedicated = false;
 	RunUnderOneProcess = true;

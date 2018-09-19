@@ -510,6 +510,12 @@ public:
 				.DisplayName(LOCTEXT("RunDedicatedServerLabel", "Run Dedicated Server"))
 				.IsEnabled(TAttribute<bool>::Create(TAttribute<bool>::FGetter::CreateSP(this, &FLevelEditorPlaySettingsCustomization::HandlePlayNetDedicatedPropertyIsEnabled)));
 
+			// IMPROBABLE-BEGIN - Added running of multiple dedicated servers in same process
+			NetworkCategory.AddProperty("PlayNumberOfServers")
+				.DisplayName(LOCTEXT("NumberOfServersLabel", "Number of Servers"))
+				.IsEnabled(TAttribute<bool>::Create(TAttribute<bool>::FGetter::CreateSP(this, &FLevelEditorPlaySettingsCustomization::HandlePlayNumberOfServersIsEnabled)));
+			// IMPROBABLE-END
+
 			// client window size
 			TSharedRef<IPropertyHandle> WindowHeightHandle = LayoutBuilder.GetProperty("ClientWindowHeight");
 			TSharedRef<IPropertyHandle> WindowWidthHandle = LayoutBuilder.GetProperty("ClientWindowWidth");
@@ -705,6 +711,14 @@ private:
 	{
 		return GetDefault<ULevelEditorPlaySettings>()->IsPlayNumberOfClientsActive();
 	}
+
+	// IMPROBABLE-BEGIN - Added running of multiple dedicated servers in same process
+	// Callback for checking whether the PlayNumberOfServers is enabled.
+	bool HandlePlayNumberOfServersIsEnabled( ) const
+	{
+		return GetDefault<ULevelEditorPlaySettings>()->IsPlayNumberOfServersActive();
+	}
+	// IMPROBABLE-END
 
 	// Callback for checking whether the ServerPort is enabled.
 	bool HandleServerPortIsEnabled() const
