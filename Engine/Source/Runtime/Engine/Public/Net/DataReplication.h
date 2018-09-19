@@ -13,7 +13,7 @@
 #include "UObject/UnrealType.h"
 #include "UObject/GCObject.h"
 
-#include "Engine/Engine.h"	// IMPROBABLE-CHANGE - Added include
+#include "GeneralProjectSettings.h"	// IMPROBABLE-CHANGE - Added include
 
 class FNetFieldExportGroup;
 class FOutBunch;
@@ -26,8 +26,7 @@ class UNetDriver;
 bool FORCEINLINE IsCustomDeltaProperty( const UProperty* Property )
 {
 	// IMPROBABLE-BEGIN - Disabled NetDeltaSerialize
-	check(GEngine);
-	if ( GEngine->IsUsingSpatialNetDriver() )
+	if ( GetDefault<UGeneralProjectSettings>()->bSpatialNetworking )
 	{
 		return false;
 	}
