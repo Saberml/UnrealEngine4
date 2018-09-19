@@ -35,6 +35,7 @@ Level.cpp: Level-related functions
 #include "GameFramework/PlayerController.h"
 #include "Engine/NavigationObjectBase.h"
 #include "GameFramework/WorldSettings.h"
+#include "GeneralProjectSettings.h" // IMPROBABLE-CHANGE - Added include
 #include "Engine/BlueprintGeneratedClass.h"
 #include "Engine/Texture2D.h"
 #include "ContentStreaming.h"
@@ -1647,7 +1648,7 @@ void ULevel::InitializeNetworkActors()
 	bool			bIsServer				= OwningWorld->IsServer();
 
 	// IMPROBABLE-BEGIN - Deletion of Startup Actors
-	bool bUsingSpatialNetworking = GEngine->IsUsingSpatialNetDriver();
+	bool bUsingSpatialNetworking = GetDefault<UGeneralProjectSettings>()->bSpatialNetworking;
 	// IMPROBABLE-END
 
 	// Kill non relevant client actors and set net roles correctly

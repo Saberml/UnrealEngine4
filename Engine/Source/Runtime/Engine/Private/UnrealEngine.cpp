@@ -9609,13 +9609,13 @@ UNetDriver* CreateNetDriver_Local(UEngine* Engine, FWorldContext& Context, FName
 	TArray<FNetDriverDefinition> NetDriverOverrides = TArray<FNetDriverDefinition>(); // IMPROBABLE-CHANGE - Remove static so this checks for toggle
 	FString OverrideCmdLine;
 
-	if (FParse::Value(FCommandLine::Get(), TEXT("NetDriverOverrides="), OverrideCmdLine) || !Engine->IsUsingSpatialNetDriver()) // IMPROBABLE-CHANGE - Go into overrides if Spatial networking unchecked
+	if (FParse::Value(FCommandLine::Get(), TEXT("NetDriverOverrides="), OverrideCmdLine) || !GetDefault<UGeneralProjectSettings>()->bSpatialNetworking) // IMPROBABLE-CHANGE - Go into overrides if Spatial networking unchecked
 	{
 		TArray<FString> OverrideEntries;
 		OverrideCmdLine.ParseIntoArray(OverrideEntries, TEXT(";"), false);
 
 		// IMPROBABLE-BEGIN - Enabled toggling Spatial networking from the engine
-		if (!Engine->IsUsingSpatialNetDriver())
+		if (!GetDefault<UGeneralProjectSettings>()->bSpatialNetworking)
 		{
 			OverrideEntries.Add(TEXT("/Script/OnlineSubsystemUtils.IpNetDriver"));
 		}
@@ -9809,13 +9809,6 @@ void UEngine::DestroyNamedNetDriver(UPendingNetGame *PendingNetGame, FName NetDr
 {
 	DestroyNamedNetDriver_Local( GetWorldContextFromPendingNetGameChecked(PendingNetGame), NetDriverName );
 }
-
-// IMPROBABLE-BEGIN - Added helper function to determine if Spatial networking is active
-bool UEngine::IsUsingSpatialNetDriver() const
-{
-	return GetDefault<UGeneralProjectSettings>()->bSpatialNetworking;
-}
-// IMPROBABLE-END
 
 ENetMode UEngine::GetNetMode(const UWorld *World) const
 { 
