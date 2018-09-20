@@ -2758,6 +2758,11 @@ public:
 	/** Browse to a specified URL, relative to the current one. */
 	virtual EBrowseReturnVal::Type Browse( FWorldContext& WorldContext, FURL URL, FString& Error );
 
+	// IMPROBABLE-BEGIN Added 'Browse' delegate to handle client travel in a spatial context.
+	typedef void(*SpatialBrowse) (FWorldContext& WorldContext, FURL URL);
+	SpatialBrowse SpatialBrowseDelegate;
+	// IMPROBABLE-END
+
 	virtual void TickWorldTravel(FWorldContext& WorldContext, float DeltaSeconds);
 
 	void BrowseToDefaultMap( FWorldContext& WorldContext );
