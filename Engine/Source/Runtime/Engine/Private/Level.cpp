@@ -1763,7 +1763,7 @@ void ULevel::InitializeNetworkActors()
 				|| OwningWorld->WorldType == EWorldType::Game
 				|| OwningWorld->WorldType == EWorldType::GamePreview)
 			{
-				if (Actor->GetIsReplicated() && !Actor->IsPendingKill() && Actor->IsFullNameStableForNetworking())
+				if (Actor->GetIsReplicated() && !Actor->IsPendingKill())
 				{
 					Actor->Destroy(true);
 				}
