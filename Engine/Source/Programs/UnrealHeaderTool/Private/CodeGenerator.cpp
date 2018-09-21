@@ -2482,7 +2482,7 @@ FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 				{
 					FString PropertyName = Property->GetName();
 					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
-					Result.Logf(TEXT("\tTArray<FUnrealObjectRefStub> %s_Context;") LINE_TERMINATOR, *PropertyName);
+					Result.Logf(TEXT("\tTArray<FUnrealObjectRef> %s_Context;") LINE_TERMINATOR, *PropertyName);
 				}
 			}
 			else if (Property->IsA<UObjectPropertyBase>())
@@ -2491,13 +2491,13 @@ FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 				{
 					FString PropertyName = Property->GetName();
 					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
-					Result.Logf(TEXT("\tTArray<FUnrealObjectRefStub> %s_Context;") LINE_TERMINATOR, *PropertyName);
+					Result.Logf(TEXT("\tTArray<FUnrealObjectRef> %s_Context;") LINE_TERMINATOR, *PropertyName);
 				}
 				else
 				{
 					FString PropertyName = Property->GetName();
 					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
-					Result.Logf(TEXT("\tFUnrealObjectRefStub %s_Context;") LINE_TERMINATOR, *PropertyName);
+					Result.Logf(TEXT("\tFUnrealObjectRef %s_Context;") LINE_TERMINATOR, *PropertyName);
 				}
 			}
 		}

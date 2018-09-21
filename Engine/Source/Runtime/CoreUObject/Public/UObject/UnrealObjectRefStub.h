@@ -1,45 +1,159 @@
 #pragma once
 
 #include "SharedPointer.h"
+#include "UniquePtr.h"
 
 #include <cstdint>
 
 #include "UnrealObjectRefStub.generated.h"
 
+namespace improbable
+{
+	template <typename T>
+	class TSchemaOption
+	{
+	public:
+		TSchemaOption() = default;
+		~TSchemaOption() = default;
+
+		TSchemaOption(const T& InValue)
+			: Value(MakeUnique<T>(InValue))
+		{}
+
+		TSchemaOption(T&& InValue)
+			: Value(MakeUnique<T>(MoveTemp(InValue)))
+		{}
+
+		TSchemaOption(const TSchemaOption& InValue)
+		{
+			*this = InValue;
+		}
+
+		TSchemaOption(TSchemaOption&&) = default;
+
+		TSchemaOption& operator=(const TSchemaOption& InValue)
+		{
+			if (this != &InValue)
+			{
+				if (InValue)
+				{
+					Value = MakeUnique<T>(*InValue);
+				}
+				else
+				{
+					Value.Reset();
+				}
+			}
+
+			return *this;
+		}
+
+		TSchemaOption& operator=(TSchemaOption&&) = default;
+
+		FORCEINLINE bool IsSet() const
+		{
+			return Value.IsValid();
+		}
+
+		FORCEINLINE explicit operator bool() const
+		{
+			return IsSet();
+		}
+
+		const T& GetValue() const
+		{
+			checkf(IsSet(), TEXT("It is an error to call GetValue() on an unset TSchemaOption. Please check IsSet()."));
+			return *Value;
+		}
+
+		T& GetValue()
+		{
+			checkf(IsSet(), TEXT("It is an error to call GetValue() on an unset TSchemaOption. Please check IsSet()."));
+			return *Value;
+		}
+
+		bool operator==(const TSchemaOption& InValue) const
+		{
+			if (IsSet() != InValue.IsSet())
+			{
+				return false;
+			}
+
+			if (!IsSet())
+			{
+				return true;
+			}
+
+			return GetValue() == InValue.GetValue();
+		}
+
+		bool operator!=(const TSchemaOption& InValue) const
+		{
+			return !operator==(InValue);
+		}
+
+		T& operator*() const
+		{
+			return *Value;
+		}
+
+		const T* operator->() const
+		{
+			return Value.Get();
+		}
+
+		T* operator->()
+		{
+			return Value.Get();
+		}
+
+	private:
+		TUniquePtr<T> Value;
+	};
+
+}
+
+template <typename T>
+inline uint32 GetTypeHash(const improbable::TSchemaOption<T>& Option)
+{
+	return Option.IsSet() ? 1327u * (GetTypeHash(*Option) + 977u) : 977u;
+}
+
+
 using Worker_EntityId = std::int64_t;
 
 USTRUCT()
-struct FUnrealObjectRefStub
+struct FUnrealObjectRef
 {
 	GENERATED_BODY()
 
-	FUnrealObjectRefStub() = default;
+	FUnrealObjectRef() = default;
 
-	FUnrealObjectRefStub(Worker_EntityId Entity, uint32 Offset)
+	FUnrealObjectRef(Worker_EntityId Entity, uint32 Offset)
 		: Entity(Entity)
 		, Offset(Offset)
 	{}
 
-	FUnrealObjectRefStub(Worker_EntityId Entity, uint32 Offset, FString Path, FUnrealObjectRefStub Outer)
+	FUnrealObjectRef(Worker_EntityId Entity, uint32 Offset, FString Path, FUnrealObjectRef Outer)
 		: Entity(Entity)
 		, Offset(Offset)
-		, Path(new FString(Path))
-		, Outer(new FUnrealObjectRefStub(Outer))
+		, Path(Path)
+		, Outer(Outer)
 	{}
 
-	FUnrealObjectRefStub(const FUnrealObjectRefStub& In)
+	FUnrealObjectRef(const FUnrealObjectRef& In)
 		: Entity(In.Entity)
 		, Offset(In.Offset)
-		//, Path(In.Path)
-		//, Outer(In.Outer)
+		, Path(In.Path)
+		, Outer(In.Outer)
 	{}
 
-	FORCEINLINE FUnrealObjectRefStub& operator=(const FUnrealObjectRefStub& In)
+	FORCEINLINE FUnrealObjectRef& operator=(const FUnrealObjectRef& In)
 	{
 		Entity = In.Entity;
 		Offset = In.Offset;
-		//Path = In.Path.Release();
-		//Outer = In.Outer;
+		Path = In.Path;
+		Outer = In.Outer;
 		return *this;
 	}
 
@@ -48,7 +162,7 @@ struct FUnrealObjectRefStub
 		return FString::Printf(TEXT("(entity ID: %lld, offset: %u)"), Entity, Offset);
 	}
 
-	FORCEINLINE bool operator==(const FUnrealObjectRefStub& Other) const
+	FORCEINLINE bool operator==(const FUnrealObjectRef& Other) const
 	{
 		return Entity == Other.Entity &&
 			Offset == Other.Offset &&
@@ -56,26 +170,23 @@ struct FUnrealObjectRefStub
 			((!Outer && !Other.Outer) || (Outer && Other.Outer && *Outer == *Other.Outer));
 	}
 
-	FORCEINLINE bool operator!=(const FUnrealObjectRefStub& Other) const
+	FORCEINLINE bool operator!=(const FUnrealObjectRef& Other) const
 	{
 		return !operator==(Other);
 	}
 
-	friend uint32 GetTypeHash(const FUnrealObjectRefStub& ObjectRef);
-
 	Worker_EntityId Entity;
 	uint32 Offset;
-	// TODO: Write our own Option class
-	TUniquePtr<FString> Path;
-	TUniquePtr<FUnrealObjectRefStub> Outer;
+	improbable::TSchemaOption<FString> Path;
+	improbable::TSchemaOption<FUnrealObjectRef> Outer;
 };
 
-inline uint32 GetTypeHash(const FUnrealObjectRefStub& ObjectRef)
+inline uint32 GetTypeHash(const FUnrealObjectRef& ObjectRef)
 {
 	uint32 Result = 1327u;
 	Result = (Result * 977u) + GetTypeHash(static_cast<int64>(ObjectRef.Entity));
 	Result = (Result * 977u) + GetTypeHash(ObjectRef.Offset);
-	Result = (Result * 977u) + (ObjectRef.Path ? 1327u * (GetTypeHash(*ObjectRef.Path) + 977u) : 977u);
-	Result = (Result * 977u) + (ObjectRef.Outer ? 1327u * (GetTypeHash(*ObjectRef.Outer) + 977u) : 977u);
+	Result = (Result * 977u) + GetTypeHash(ObjectRef.Path);
+	Result = (Result * 977u) + GetTypeHash(ObjectRef.Outer);
 	return Result;
 }
