@@ -4819,7 +4819,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			ObjRefProp.RefQualifier = ERefQualifier::None;
 			ObjRefProp.MapKeyProp = nullptr;
 			ObjRefProp.PropertyExportFlags = 2;
-			ObjRefProp.Struct = FindObject<UScriptStruct>(ANY_PACKAGE, TEXT("UnrealObjectRefStub"));
+			ObjRefProp.Struct = FindObject<UScriptStruct>(ANY_PACKAGE, TEXT("UnrealObjectRef"));
 			ObjRefProp.MetaClass = nullptr;
 			ObjRefProp.DelegateName = NAME_None;
 			ObjRefProp.DelegateSignatureOwnerClass = nullptr;
