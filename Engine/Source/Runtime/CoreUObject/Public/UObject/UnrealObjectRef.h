@@ -5,7 +5,7 @@
 
 #include <cstdint>
 
-#include "UnrealObjectRefStub.generated.h"
+#include "UnrealObjectRef.generated.h"
 
 namespace improbable
 {
