@@ -10397,10 +10397,7 @@ EBrowseReturnVal::Type UEngine::Browse( FWorldContext& WorldContext, FURL URL, F
 		WorldContext.PendingNetGame->Initialize(URL);
 
 		// IMPROBABLE-BEGIN
-		if(SpatialBrowseDelegate)
-		{
-			SpatialBrowseDelegate(WorldContext, URL);
-		}
+		SpatialBrowse.ExecuteIfBound(WorldContext, URL);
 		// IMPROBABLE-END
 
 		WorldContext.PendingNetGame->InitNetDriver();

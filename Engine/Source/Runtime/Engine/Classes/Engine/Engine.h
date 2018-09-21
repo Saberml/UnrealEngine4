@@ -2758,9 +2758,10 @@ public:
 	/** Browse to a specified URL, relative to the current one. */
 	virtual EBrowseReturnVal::Type Browse( FWorldContext& WorldContext, FURL URL, FString& Error );
 
-	// IMPROBABLE-BEGIN Added 'Browse' delegate to handle client travel in a spatial context.
-	typedef void(*SpatialBrowse) (FWorldContext& WorldContext, FURL URL);
-	SpatialBrowse SpatialBrowseDelegate;
+	// IMPROBABLE-BEGIN Added 'Browse' delegate to handle client travel in a Spatial context.
+	DECLARE_DELEGATE_TwoParams(SpatialBrowseDelegate, FWorldContext&, FURL);
+	// Gets called during Browse for clients. Will initialize the PendingNetGame and the NetDriver to Spatial variants.
+	SpatialBrowseDelegate SpatialBrowse; 
 	// IMPROBABLE-END
 
 	virtual void TickWorldTravel(FWorldContext& WorldContext, float DeltaSeconds);
