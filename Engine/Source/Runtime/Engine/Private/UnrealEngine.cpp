@@ -10393,7 +10393,11 @@ EBrowseReturnVal::Type UEngine::Browse( FWorldContext& WorldContext, FURL URL, F
 			ShutdownWorldNetDriver(WorldContext.World());
 		}
 
-		WorldContext.PendingNetGame = NewObject<UPendingNetGame>();
+		// IMPROBABLE-BEGIN Get the PendingNetGameClass if it is set or use default if otherwise.
+		TSubclassOf<UPendingNetGame> ActualNetGameClass = PendingNetGameClass ? PendingNetGameClass : UPendingNetGame::StaticClass();
+		WorldContext.PendingNetGame = NewObject<UPendingNetGame>(GetTransientPackage(), ActualNetGameClass);
+		// IMPROBABLE-END
+
 		WorldContext.PendingNetGame->Initialize(URL);
 		WorldContext.PendingNetGame->InitNetDriver();
 		if( !WorldContext.PendingNetGame->NetDriver )
