@@ -2759,7 +2759,7 @@ public:
 	virtual EBrowseReturnVal::Type Browse( FWorldContext& WorldContext, FURL URL, FString& Error );
 
 	// IMPROBABLE-BEGIN Added 'Browse' delegate to handle client travel in a Spatial context.
-	DECLARE_DELEGATE_TwoParams(SpatialBrowseDelegate, FWorldContext&, FURL);
+	DECLARE_DELEGATE_TwoParams(SpatialBrowseDelegate, FWorldContext&, const FURL&);
 	// Gets called during Browse for clients. Will initialize the PendingNetGame and the NetDriver to Spatial variants.
 	SpatialBrowseDelegate SpatialBrowse; 
 	// IMPROBABLE-END
