@@ -2677,6 +2677,10 @@ public:
 	UPROPERTY()
 	TArray<FString> RuntimeServerActors;
 
+	// IMPROBABLE-BEGIN Added PendingNetGameClass to allow overriding the type of PendingNetGame which is used in client travel (Browse).
+	TSubclassOf<UPendingNetGame> PendingNetGameClass;
+	// IMPROBABLE-END
+
 	/** Spawns all of the registered server actors */
 	virtual void SpawnServerActors(UWorld *World);
 
