@@ -2611,6 +2611,10 @@ public:
 	UPROPERTY()
 	TArray<FString> RuntimeServerActors;
 
+	// IMPROBABLE-BEGIN Added PendingNetGameClass to allow overriding the type of PendingNetGame which is used in client travel (Browse).
+	TSubclassOf<UPendingNetGame> PendingNetGameClass;
+	// IMPROBABLE-END
+
 	/** Spawns all of the registered server actors */
 	virtual void SpawnServerActors(UWorld *World);
 
@@ -2757,12 +2761,6 @@ public:
 
 	/** Browse to a specified URL, relative to the current one. */
 	virtual EBrowseReturnVal::Type Browse( FWorldContext& WorldContext, FURL URL, FString& Error );
-
-	// IMPROBABLE-BEGIN Added 'Browse' delegate to handle client travel in a Spatial context.
-	DECLARE_DELEGATE_TwoParams(SpatialBrowseDelegate, FWorldContext&, const FURL&);
-	// Gets called during Browse for clients. Will initialize the PendingNetGame and the NetDriver to Spatial variants.
-	SpatialBrowseDelegate SpatialBrowse; 
-	// IMPROBABLE-END
 
 	virtual void TickWorldTravel(FWorldContext& WorldContext, float DeltaSeconds);
 
