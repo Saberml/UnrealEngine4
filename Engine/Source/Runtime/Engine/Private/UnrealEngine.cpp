@@ -11467,9 +11467,10 @@ EBrowseReturnVal::Type UEngine::Browse( FWorldContext& WorldContext, FURL URL, F
 			ShutdownWorldNetDriver(WorldContext.World());
 		}
 
-		// IMPROBABLE-BEGIN Get the PendingNetGameClass if it is set or use default if otherwise.
-		TSubclassOf<UPendingNetGame> ActualNetGameClass = PendingNetGameClass ? PendingNetGameClass : TSubclassOf<UPendingNetGame>(UPendingNetGame::StaticClass());
-		WorldContext.PendingNetGame = NewObject<UPendingNetGame>(GetTransientPackage(), ActualNetGameClass);
+		// IMPROBABLE-BEGIN Create the instance of USpatialPendingNetGame if Spatial networking is enabled
+		UClass* PendingNetGameClass = GetDefault<UGeneralProjectSettings>()->bSpatialNetworking ? LoadClass<UPendingNetGame>(nullptr, TEXT("/Script/SpatialGDK.SpatialPendingNetGame")) : UPendingNetGame::StaticClass();
+		check(PendingNetGameClass);
+		WorldContext.PendingNetGame = NewObject<UPendingNetGame>(GetTransientPackage(), PendingNetGameClass);
 		// IMPROBABLE-END
 
 		WorldContext.PendingNetGame->Initialize(URL); //-V595
