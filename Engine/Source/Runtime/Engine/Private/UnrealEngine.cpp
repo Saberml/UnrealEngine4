@@ -11468,7 +11468,7 @@ EBrowseReturnVal::Type UEngine::Browse( FWorldContext& WorldContext, FURL URL, F
 		}
 
 		// IMPROBABLE-BEGIN Get the PendingNetGameClass if it is set or use default if otherwise.
-		TSubclassOf<UPendingNetGame> ActualNetGameClass = PendingNetGameClass ? PendingNetGameClass : UPendingNetGame::StaticClass();
+		TSubclassOf<UPendingNetGame> ActualNetGameClass = PendingNetGameClass ? PendingNetGameClass : TSubclassOf<UPendingNetGame>(UPendingNetGame::StaticClass());
 		WorldContext.PendingNetGame = NewObject<UPendingNetGame>(GetTransientPackage(), ActualNetGameClass);
 		// IMPROBABLE-END
 
