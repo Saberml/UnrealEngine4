@@ -34,7 +34,7 @@ namespace UnrealBuildTool
 	{
 		///
 		/// Preparation and Assembly (serialized)
-		/// 
+		///
 
 		/// <summary>
 		/// The type of this action (for debugging purposes).
@@ -474,7 +474,13 @@ namespace UnrealBuildTool
 				DateTime StartTime = DateTime.UtcNow;
 
 				ActionExecutor Executor;
-				if(bIsRemoteCompile)
+				// IMPROBABLE-BEGIN: Added FASTBuild
+				if(FASTBuild.IsAvailable())
+				{
+					Executor = new FASTBuild();
+				}
+				else if(bIsRemoteCompile)
+				// IMPROBABLE-END
 				{
 					Executor = new RemoteExecutor();
 				}
@@ -1475,7 +1481,7 @@ namespace UnrealBuildTool
 
 				//@todo: Testing out attribute support.  Replace with an attribute that is actually useful!
 				//if( FileItem.PrecompiledHeaderIncludeFilename != null )
-				//{ 
+				//{
 				//FileGraphNode.Attributes[ "PCHFile" ] = Path.GetFileNameWithoutExtension( FileItem.PrecompiledHeaderIncludeFilename );
 				//}
 
