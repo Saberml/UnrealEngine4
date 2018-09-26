@@ -11,7 +11,13 @@
 
 #if WITH_NVCLOTH
 
+// IMPROBABLE-BEGIN - Workaround a VS2015 compiler bug when run in FASTBuild (https://github.com/fastbuild/fastbuild/issues/256)
+#ifndef __clang__
+#pragma push_macro("check")
+#else
 PUSH_MACRO(check)
+#endif
+// IMPROBABLE-END
 #undef check
 
 #if PLATFORM_XBOXONE
@@ -47,6 +53,12 @@ PUSH_MACRO(check)
 	#endif
 #endif
 
-POP_MACRO(check)
+// IMPROBABLE-BEGIN - Workaround a VS2015 compiler bug when run in FASTBuild (https://github.com/fastbuild/fastbuild/issues/256)
+#ifndef __clang__
+#pragma pop_macro("check")
+#else
+	POP_MACRO(check)
+#endif
+// IMPROBABLE-END
 
 #endif
