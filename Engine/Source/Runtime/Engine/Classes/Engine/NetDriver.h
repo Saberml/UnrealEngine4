@@ -523,9 +523,7 @@ public:
 	 */
 	ENGINE_API virtual bool Exec(UWorld* InWorld, const TCHAR* Cmd, FOutputDevice& Ar=*GLog) override;
 
-	// IMPROBABLE-BEGIN - Added ENGINE_API to export this function
-	ENGINE_API virtual ENetMode	GetNetMode() const;
-	// IMPROBABLE-END
+	ENGINE_API ENetMode	GetNetMode() const;
 
 	//~ End FExec Interface.
 
@@ -849,8 +847,8 @@ protected:
 	/**
 	* Helper functions for ServerReplicateActors
 	*/
-	// IMPROBABLE-BEGIN - Added ENGINE_API to export these functions
-	ENGINE_API int32 ServerReplicateActors_PrepConnections( const float DeltaSeconds );
+	int32 ServerReplicateActors_PrepConnections( const float DeltaSeconds );
+	// IMPROBABLE-BEGIN - Added ENGINE_API to export this function
 	ENGINE_API void ServerReplicateActors_BuildConsiderList( TArray<FNetworkObjectInfo*>& OutConsiderList, const float ServerTickTime );
 	// IMPROBABLE-END
 	int32 ServerReplicateActors_PrioritizeActors( UNetConnection* Connection, const TArray<FNetViewer>& ConnectionViewers, const TArray<FNetworkObjectInfo*> ConsiderList, const bool bCPUSaturated, FActorPriority*& OutPriorityList, FActorPriority**& OutPriorityActors );

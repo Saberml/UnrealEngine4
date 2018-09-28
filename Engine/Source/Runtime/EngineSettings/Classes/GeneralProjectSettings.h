@@ -99,6 +99,8 @@ class ENGINESETTINGS_API UGeneralProjectSettings
 	UPROPERTY(config, EditAnywhere, Category = Settings)
 	bool bAllowMinimize;
 
+	// IMPROBABLE-BEGIN - Add Spatial networking flag
 	UPROPERTY(config, EditAnywhere, Category = Settings)
 	bool bSpatialNetworking;
+	// IMPROBABLE-END
 };

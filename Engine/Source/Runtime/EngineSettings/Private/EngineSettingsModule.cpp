@@ -77,7 +77,7 @@ UGeneralProjectSettings::UGeneralProjectSettings( const FObjectInitializer& Obje
 	, bAllowClose(true)
 	, bAllowMaximize(true)
 	, bAllowMinimize(true)
-	, bSpatialNetworking(true)
+	, bSpatialNetworking(true)	// IMPROBABLE-CHANGE - Add Spatial networking flag
 { }
 
 
