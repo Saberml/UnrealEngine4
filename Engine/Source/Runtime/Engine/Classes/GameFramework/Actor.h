@@ -307,10 +307,6 @@ private:
 
 	static uint32 BeginPlayCallDepth;
 
-	/** Describes how much control the remote machine has over the actor. */
-	UPROPERTY(Replicated, Transient)
-	TEnumAsByte<enum ENetRole> RemoteRole;
-
 public:
 
 	// ORION TODO - was moved to private. Add accessor?
@@ -390,9 +386,15 @@ public:
 	UFUNCTION()
 	virtual void OnRep_AttachmentReplication();
 
+	// IMPROBABLE-BEGIN: Made RemoteRole public and both roles visible.
 	/** Describes how much control the local machine has over the actor. */
-	UPROPERTY(Replicated)
+	UPROPERTY(Replicated, VisibleInstanceOnly, Category=Authority)
 	TEnumAsByte<enum ENetRole> Role;
+
+	/** Describes how much control the remote machine has over the actor. */
+	UPROPERTY(Replicated, Transient, VisibleInstanceOnly, Category=Authority)
+	TEnumAsByte<enum ENetRole> RemoteRole;
+	// IMPROBABLE-END
 
 	/** Dormancy setting for actor to take itself off of the replication list without being destroyed on clients. */
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category=Replication)
