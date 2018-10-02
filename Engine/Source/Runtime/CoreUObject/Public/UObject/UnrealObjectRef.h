@@ -41,7 +41,7 @@ namespace improbable
 				}
 				else
 				{
-					Value.Reset();
+					//Value.Reset();
 				}
 			}
 
@@ -122,7 +122,7 @@ inline uint32 GetTypeHash(const improbable::TSchemaOption<T>& Option)
 
 using Worker_EntityId = std::int64_t;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FUnrealObjectRef
 {
 	GENERATED_BODY()

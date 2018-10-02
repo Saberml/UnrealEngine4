@@ -4808,28 +4808,38 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			NewMapKeyProperty = CreateVariableProperty(*VarProperty.MapKeyProp, NewScope, *(PropertyName.ToString() + TEXT("_Key")), ObjectFlags, VariableCategory, CurrentSrcFile);
 		}
 		// IMPROBABLE-BEGIN
-		else if (VarProperty.IsObject() && VariableCategory == EVariableCategory::Member && VarProperty.PropertyFlags & CPF_Net)
+		else if (VarProperty.IsObject() && VariableCategory == EVariableCategory::Member && !(VarProperty.PropertyFlags & CPF_RepSkip)
+			&& VarProperty.Type != CPT_Interface)
 		{
-			FString VarName(VarProperty.Identifier);
+			if (Scope->GetName() != TEXT("ExpressionInput")
+				&& Scope->GetName() != TEXT("MaterialInput")
+				&& Scope->GetName() != TEXT("MemberReference")
+				&& Scope->GetName() != TEXT("MaterialAttributesInput")
+				&& Scope->GetName() != TEXT("Vector2MaterialInput")
+				&& Scope->GetName() != TEXT("VectorMaterialInput")
+				&& Scope->GetName() != TEXT("ScalarMaterialInput"))
+			{
+				FString VarName(VarProperty.Identifier);
 
-			FPropertyBase ObjRefProp(EPropertyType::CPT_Struct);
-			ObjRefProp.ArrayType = EArrayType::None;
-			ObjRefProp.PropertyFlags = 18014398509481984;
-			ObjRefProp.ImpliedPropertyFlags = 0;
-			ObjRefProp.RefQualifier = ERefQualifier::None;
-			ObjRefProp.MapKeyProp = nullptr;
-			ObjRefProp.PropertyExportFlags = 2;
-			ObjRefProp.Struct = FindObject<UScriptStruct>(ANY_PACKAGE, TEXT("UnrealObjectRef"));
-			ObjRefProp.MetaClass = nullptr;
-			ObjRefProp.DelegateName = NAME_None;
-			ObjRefProp.DelegateSignatureOwnerClass = nullptr;
-			ObjRefProp.RepNotifyName = NAME_None;
-			ObjRefProp.MetaData = VarProperty.MetaData;
-			ObjRefProp.PointerType = EPointerType::None;
-			ObjRefProp.IntType = EIntType::None;
+				FPropertyBase ObjRefProp(EPropertyType::CPT_Struct);
+				ObjRefProp.ArrayType = EArrayType::None;
+				ObjRefProp.PropertyFlags = 18014398509481984;
+				ObjRefProp.ImpliedPropertyFlags = 0;
+				ObjRefProp.RefQualifier = ERefQualifier::None;
+				ObjRefProp.MapKeyProp = nullptr;
+				ObjRefProp.PropertyExportFlags = 2;
+				ObjRefProp.Struct = FindObject<UScriptStruct>(ANY_PACKAGE, TEXT("UnrealObjectRef"));
+				ObjRefProp.MetaClass = nullptr;
+				ObjRefProp.DelegateName = NAME_None;
+				ObjRefProp.DelegateSignatureOwnerClass = nullptr;
+				ObjRefProp.RepNotifyName = NAME_None;
+				ObjRefProp.MetaData = VarProperty.MetaData;
+				ObjRefProp.PointerType = EPointerType::None;
+				ObjRefProp.IntType = EIntType::None;
 
-			FName ObjRefPropertyName = *(PropertyName.ToString().Append(FString(TEXT("_Context"))));
-			NewObjectRefProperty = CreateVariableProperty(ObjRefProp, Scope, ObjRefPropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
+				FName ObjRefPropertyName = *(PropertyName.ToString().Append(FString(TEXT("_Context"))));
+				NewObjectRefProperty = CreateVariableProperty(ObjRefProp, Scope, ObjRefPropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
+			}
 		}
 		// IMPROBABLE-END
 
