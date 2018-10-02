@@ -6759,6 +6759,12 @@ bool UMaterialExpressionFeatureLevelSwitch::IsResultMaterialAttributes(int32 Out
 
 void UMaterialExpressionFeatureLevelSwitch::Serialize(FArchive& Ar)
 {
+	if (GetName() == TEXT("MaterialExpressionFeatureLevelSwitch"))
+	{
+		int i = 0;
+		i++;
+	}
+
 	Super::Serialize(Ar);
 	if (Ar.IsLoading() && Ar.UE4Ver() < VER_UE4_RENAME_SM3_TO_ES3_1)
 	{

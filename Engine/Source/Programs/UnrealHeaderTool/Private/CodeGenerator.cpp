@@ -2464,6 +2464,7 @@ static FString PrivatePropertiesOffsetGetters(const UStruct* Struct, const FStri
 
 	return Result;
 }
+#pragma optimize("", off)
 // IMPROBABLE-BEGIN
 FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 {
@@ -2471,7 +2472,7 @@ FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 
 	for (const UProperty* Property : TFieldRange<UProperty>(Struct, EFieldIteratorFlags::ExcludeSuper))
 	{
-		if (Property->GetPropertyFlags() & CPF_Net)
+		if (! (Property->GetPropertyFlags() & CPF_RepSkip))
 		{
 			if (Property->IsA<UArrayProperty>())
 			{
@@ -2502,9 +2503,9 @@ FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 			}
 		}
 	}
-
 	return Result;
 }
+#pragma optimize("", on)
 // IMPROBABLE-END
 
 // IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables

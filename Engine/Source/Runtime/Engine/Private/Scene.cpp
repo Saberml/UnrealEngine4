@@ -274,7 +274,7 @@ static void DoPostProcessSettingsSanityCheck()
 				FLensImperfectionSettings::StaticStruct()}),
 			RenameMap);
 	}
-	
+
 	{
 		TMap<FString, FString> RenameMap;
 		VerifyPostProcessingProperties(TEXT("BloomConvolution"),
