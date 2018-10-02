@@ -228,7 +228,7 @@ static void VerifyPostProcessingProperties(
 
 			NewPropertyName = RenameMap.FindChecked(Property->GetNameCPP());
 		}
-	
+
 		if (Property->GetNameCPP().EndsWith(TEXT("_DEPRECATED")))
 		{
 			check(!NewPropertySet.Contains(NewPropertyName));
