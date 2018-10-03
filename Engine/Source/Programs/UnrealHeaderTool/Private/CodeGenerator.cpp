@@ -2782,14 +2782,14 @@ void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 				PPOMacroName = FString::Printf(TEXT("\t%s\r\n"), *PPOMacroNameRaw);
 				WriteMacro(OutGeneratedHeaderText, PPOMacroNameRaw, PrivatePropertiesOffsets);
 			}
-			// IMPROBABLE_BEGIN
+			// IMPROBABLE-BEGIN
 			{
 				const FString ObjectRefs = GenerateImprobableObjectRefsMacro(Class);
 				const FString ObjectRefsMacroNameRaw = SourceFile.GetGeneratedMacroName(ClassData, TEXT("_IMPROBABLE_OBJECT_REFS"));
 				ObjectRefsMacroName = FString::Printf(TEXT("\t%s\r\n"), *ObjectRefsMacroNameRaw);
 				WriteMacro(OutGeneratedHeaderText, ObjectRefsMacroNameRaw, ObjectRefs);
 			}
-			// IMPROBABLE_END
+			// IMPROBABLE-END
 		}
 	}
 
