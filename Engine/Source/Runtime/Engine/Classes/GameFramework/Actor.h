@@ -2057,6 +2057,11 @@ public:
 	/** Called after the actor has run its construction. Responsible for finishing the actor spawn process. */
 	void PostActorConstruction();
 
+	// IMPROBABLE-BEGIN Added Spatial versions of FinishSpawning and PostActorConstruction that always defer BeginPlay
+	void SpatialFinishSpawning(const FTransform& Transform, bool bIsDefaultTransform = false, const FComponentInstanceDataCache* InstanceDataCache = nullptr);
+	void SpatialPostActorConstruction();
+	// IMPROBABLE-END
+
 public:
 	/** Called immediately before gameplay begins. */
 	virtual void PreInitializeComponents();

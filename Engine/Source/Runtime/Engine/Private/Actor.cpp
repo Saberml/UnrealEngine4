@@ -2998,6 +2998,183 @@ void AActor::PostActorConstruction()
 	}
 }
 
+// IMPROBABLE-BEGIN Added Spatial versions of FinishSpawning and PostActorConstruction that always defer BeginPlay
+void AActor::SpatialFinishSpawning(const FTransform& UserTransform, bool bIsDefaultTransform, const FComponentInstanceDataCache* InstanceDataCache)
+{
+#if ENABLE_SPAWNACTORTIMER
+	FScopedSpawnActorTimer SpawnTimer(GetClass()->GetFName(), ESpawnActorTimingType::FinishSpawning);
+	SpawnTimer.SetActorName(GetFName());
+#endif
+
+	if (ensure(!bHasFinishedSpawning))
+	{
+		bHasFinishedSpawning = true;
+
+		FTransform FinalRootComponentTransform = (RootComponent ? RootComponent->GetComponentTransform() : UserTransform);
+
+		// see if we need to adjust the transform (i.e. in deferred cases where the caller passes in a different transform here 
+		// than was passed in during the original SpawnActor call)
+		if (RootComponent && !bIsDefaultTransform)
+		{
+			FTransform const* const OriginalSpawnTransform = GSpawnActorDeferredTransformCache.Find(this);
+			if (OriginalSpawnTransform)
+			{
+				GSpawnActorDeferredTransformCache.Remove(this);
+
+				if (OriginalSpawnTransform->Equals(UserTransform) == false)
+				{
+					UserTransform.GetLocation().DiagnosticCheckNaN(TEXT("AActor::FinishSpawning: UserTransform.GetLocation()"));
+					UserTransform.GetRotation().DiagnosticCheckNaN(TEXT("AActor::FinishSpawning: UserTransform.GetRotation()"));
+
+					// caller passed a different transform!
+					// undo the original spawn transform to get back to the template transform, so we can recompute a good
+					// final transform that takes into account the template's transform
+					FTransform const TemplateTransform = RootComponent->GetComponentTransform() * OriginalSpawnTransform->Inverse();
+					FinalRootComponentTransform = TemplateTransform * UserTransform;
+				}
+			}
+
+			// should be fast and relatively rare
+			ValidateDeferredTransformCache();
+		}
+
+		FinalRootComponentTransform.GetLocation().DiagnosticCheckNaN(TEXT("AActor::FinishSpawning: FinalRootComponentTransform.GetLocation()"));
+		FinalRootComponentTransform.GetRotation().DiagnosticCheckNaN(TEXT("AActor::FinishSpawning: FinalRootComponentTransform.GetRotation()"));
+
+		ExecuteConstruction(FinalRootComponentTransform, nullptr, InstanceDataCache, bIsDefaultTransform);
+
+		{
+			SCOPE_CYCLE_COUNTER(STAT_PostActorConstruction);
+			SpatialPostActorConstruction();
+		}
+	}
+}
+
+void AActor::SpatialPostActorConstruction()
+{
+	UWorld* const World = GetWorld();
+	bool const bActorsInitialized = World && World->AreActorsInitialized();
+
+	if (bActorsInitialized)
+	{
+		PreInitializeComponents();
+	}
+
+	// If this is dynamically spawned replicated actor, defer calls to BeginPlay and UpdateOverlaps until replicated properties are deserialized
+	const bool bDeferBeginPlayAndUpdateOverlaps = true;
+
+	if (bActorsInitialized)
+	{
+		// Call InitializeComponent on components
+		InitializeComponents();
+
+		// actor should have all of its components created and registered now, do any collision checking and handling that we need to do
+		if (World)
+		{
+			switch (SpawnCollisionHandlingMethod)
+			{
+			case ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn:
+			{
+				// Try to find a spawn position
+				FVector AdjustedLocation = GetActorLocation();
+				FRotator AdjustedRotation = GetActorRotation();
+				if (World->FindTeleportSpot(this, AdjustedLocation, AdjustedRotation))
+				{
+					SetActorLocationAndRotation(AdjustedLocation, AdjustedRotation, false, nullptr, ETeleportType::TeleportPhysics);
+				}
+			}
+			break;
+			case ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding:
+			{
+				// Try to find a spawn position			
+				FVector AdjustedLocation = GetActorLocation();
+				FRotator AdjustedRotation = GetActorRotation();
+				if (World->FindTeleportSpot(this, AdjustedLocation, AdjustedRotation))
+				{
+					SetActorLocationAndRotation(AdjustedLocation, AdjustedRotation, false, nullptr, ETeleportType::TeleportPhysics);
+				}
+				else
+				{
+					UE_LOG(LogSpawn, Warning, TEXT("SpawnActor failed because of collision at the spawn location [%s] for [%s]"), *AdjustedLocation.ToString(), *GetClass()->GetName());
+					Destroy();
+				}
+			}
+			break;
+			case ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding:
+				if (World->EncroachingBlockingGeometry(this, GetActorLocation(), GetActorRotation()))
+				{
+					UE_LOG(LogSpawn, Warning, TEXT("SpawnActor failed because of collision at the spawn location [%s] for [%s]"), *GetActorLocation().ToString(), *GetClass()->GetName());
+					Destroy();
+				}
+				break;
+			case ESpawnActorCollisionHandlingMethod::Undefined:
+			case ESpawnActorCollisionHandlingMethod::AlwaysSpawn:
+			default:
+				// note we use "always spawn" as default, so treat undefined as that
+				// nothing to do here, just proceed as normal
+				break;
+			}
+		}
+
+		if (!IsPendingKill())
+		{
+			PostInitializeComponents();
+			if (!IsPendingKill())
+			{
+				if (!bActorInitialized)
+				{
+					UE_LOG(LogActor, Fatal, TEXT("%s failed to route PostInitializeComponents.  Please call Super::PostInitializeComponents() in your <className>::PostInitializeComponents() function. "), *GetFullName());
+				}
+
+				bool bRunBeginPlay = !bDeferBeginPlayAndUpdateOverlaps && (BeginPlayCallDepth > 0 || World->HasBegunPlay());
+				if (bRunBeginPlay)
+				{
+					if (AActor* ParentActor = GetParentActor())
+					{
+						// Child Actors cannot run begin play until their parent has run
+						bRunBeginPlay = (ParentActor->HasActorBegunPlay() || ParentActor->IsActorBeginningPlay());
+					}
+				}
+
+#if WITH_EDITOR
+				if (bRunBeginPlay && bIsEditorPreviewActor)
+				{
+					bRunBeginPlay = false;
+				}
+#endif
+
+				if (bRunBeginPlay)
+				{
+					SCOPE_CYCLE_COUNTER(STAT_ActorBeginPlay);
+					DispatchBeginPlay();
+				}
+			}
+		}
+	}
+	else
+	{
+		// Set IsPendingKill() to true so that when the initial undo record is made,
+		// the actor will be treated as destroyed, in that undo an add will
+		// actually work
+		MarkPendingKill();
+		Modify(false);
+		ClearPendingKill();
+	}
+
+	if (!IsPendingKill())
+	{
+		// Components are all there and we've begun play, init overlapping state
+		if (!bDeferBeginPlayAndUpdateOverlaps)
+		{
+			UpdateOverlaps();
+		}
+
+		// Notify the texture streaming manager about the new actor.
+		IStreamingManager::Get().NotifyActorSpawned(this);
+	}
+}
+//IMPROBABLE-END
+
 void AActor::SetReplicates(bool bInReplicates)
 { 
 	if (Role == ROLE_Authority)
