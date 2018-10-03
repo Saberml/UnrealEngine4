@@ -2472,33 +2472,30 @@ FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 
 	for (const UProperty* Property : TFieldRange<UProperty>(Struct, EFieldIteratorFlags::ExcludeSuper))
 	{
-		if (! (Property->GetPropertyFlags() & CPF_RepSkip))
+		if (!(Property->GetPropertyFlags() & CPF_RepSkip))
 		{
 			if (Property->IsA<UArrayProperty>())
 			{
 				const UArrayProperty* ArrayProperty = Cast<const UArrayProperty>(Property);
-				UProperty* InnerProperty = ArrayProperty->Inner;
+				const UProperty* InnerProperty = ArrayProperty->Inner;
 
 				if (InnerProperty->IsA<UObjectPropertyBase>())
 				{
-					FString PropertyName = Property->GetName();
 					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
-					Result.Logf(TEXT("\tTArray<FUnrealObjectRef> %s_Context;") LINE_TERMINATOR, *PropertyName);
+					Result.Logf(TEXT("\tTArray<FUnrealObjectRef> %s_Context;") LINE_TERMINATOR, *Property->GetName());
 				}
 			}
 			else if (Property->IsA<UObjectPropertyBase>())
 			{
 				if (Property->ArrayDim > 1)
 				{
-					FString PropertyName = Property->GetName();
 					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
-					Result.Logf(TEXT("\tTArray<FUnrealObjectRef> %s_Context;") LINE_TERMINATOR, *PropertyName);
+					Result.Logf(TEXT("\tTArray<FUnrealObjectRef> %s_Context;") LINE_TERMINATOR, *Property->GetName());
 				}
 				else
 				{
-					FString PropertyName = Property->GetName();
 					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
-					Result.Logf(TEXT("\tFUnrealObjectRef %s_Context;") LINE_TERMINATOR, *PropertyName);
+					Result.Logf(TEXT("\tFUnrealObjectRef %s_Context;") LINE_TERMINATOR, *Property->GetName());
 				}
 			}
 		}
@@ -2815,13 +2812,13 @@ void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 			+ ClassMacroCalls
 			// IMPROBABLE-BEGIN
 			+ (bIsIInterface ? TEXT("") : StandardUObjectConstructorsMacroCall)
-			+ FString(bIsIInterface ? TEXT("") : ObjectRefsMacroName);
+			+ (bIsIInterface ? TEXT("") : ObjectRefsMacroName);
 			// IMPROBABLE-END
 		auto GeneratedBody = FString(bIsIInterface ? TEXT("") : PPOMacroName)
 			+ ClassNoPureDeclsMacroCalls
 			// IMPROBABLE-BEGIN
 			+ (bIsIInterface ? TEXT("") : EnhancedUObjectConstructorsMacroCall)
-			+ FString(bIsIInterface ? TEXT("") : ObjectRefsMacroName);
+			+ (bIsIInterface ? TEXT("") : ObjectRefsMacroName);
 			// IMPROBABLE-END
 
 		auto WrappedLegacyGeneratedBody = DeprecationWarning + DeprecationPushString + Public + LegacyGeneratedBody + Public + DeprecationPopString;

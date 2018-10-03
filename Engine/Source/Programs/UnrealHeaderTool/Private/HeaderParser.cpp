@@ -4780,7 +4780,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 		USetProperty*   Set               = nullptr; // TODO: Set Property
 		UProperty*      NewMapKeyProperty = nullptr;
 		// IMPROBABLE-BEGIN
-		UProperty*		NewObjectRefProperty = nullptr;
+		UProperty*      NewObjectRefProperty = nullptr;
 		// IMPROBABLE-END
 		UObject*        NewScope          = Scope;
 		int32           ArrayDim          = 1; // 1 = not a static array, 2 = static array
@@ -4808,18 +4808,18 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			NewMapKeyProperty = CreateVariableProperty(*VarProperty.MapKeyProp, NewScope, *(PropertyName.ToString() + TEXT("_Key")), ObjectFlags, VariableCategory, CurrentSrcFile);
 		}
 		// IMPROBABLE-BEGIN
-		else if (VarProperty.IsObject() && VariableCategory == EVariableCategory::Member && !(VarProperty.PropertyFlags & CPF_RepSkip)
-			&& VarProperty.Type != CPT_Interface)
+		else if (VarProperty.IsObject() && VariableCategory == EVariableCategory::Member 
+			&& !(VarProperty.PropertyFlags & CPF_RepSkip) && VarProperty.Type != CPT_Interface)
 		{
 			if (Scope->GetName() != TEXT("ExpressionInput")
 				&& Scope->GetName() != TEXT("MaterialInput")
-				&& Scope->GetName() != TEXT("MemberReference")
 				&& Scope->GetName() != TEXT("MaterialAttributesInput")
 				&& Scope->GetName() != TEXT("Vector2MaterialInput")
 				&& Scope->GetName() != TEXT("VectorMaterialInput")
-				&& Scope->GetName() != TEXT("ScalarMaterialInput"))
+				&& Scope->GetName() != TEXT("ScalarMaterialInput")
+				&& Scope->GetName() != TEXT("MemberReference"))
 			{
-				FString VarName(VarProperty.Identifier);
+				const FString VarName(VarProperty.Identifier);
 
 				FPropertyBase ObjRefProp(EPropertyType::CPT_Struct);
 				ObjRefProp.ArrayType = EArrayType::None;
@@ -4827,7 +4827,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 				ObjRefProp.ImpliedPropertyFlags = 0;
 				ObjRefProp.RefQualifier = ERefQualifier::None;
 				ObjRefProp.MapKeyProp = nullptr;
-				ObjRefProp.PropertyExportFlags = 2;
+				ObjRefProp.PropertyExportFlags = EPropertyHeaderExportFlags::PROPEXPORT_Public;
 				ObjRefProp.Struct = FindObject<UScriptStruct>(ANY_PACKAGE, TEXT("UnrealObjectRef"));
 				ObjRefProp.MetaClass = nullptr;
 				ObjRefProp.DelegateName = NAME_None;
@@ -4837,7 +4837,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 				ObjRefProp.PointerType = EPointerType::None;
 				ObjRefProp.IntType = EIntType::None;
 
-				FName ObjRefPropertyName = *(PropertyName.ToString().Append(FString(TEXT("_Context"))));
+				const FName ObjRefPropertyName = *(PropertyName.ToString().Append(FString(TEXT("_Context"))));
 				NewObjectRefProperty = CreateVariableProperty(ObjRefProp, Scope, ObjRefPropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
 			}
 		}
