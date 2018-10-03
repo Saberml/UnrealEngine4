@@ -2464,7 +2464,7 @@ static FString PrivatePropertiesOffsetGetters(const UStruct* Struct, const FStri
 
 	return Result;
 }
-#pragma optimize("", off)
+
 // IMPROBABLE-BEGIN
 FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 {
@@ -2505,7 +2505,6 @@ FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 	}
 	return Result;
 }
-#pragma optimize("", on)
 // IMPROBABLE-END
 
 // IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
