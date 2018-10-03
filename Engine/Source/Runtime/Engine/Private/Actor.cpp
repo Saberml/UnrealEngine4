@@ -3045,6 +3045,7 @@ void AActor::SpatialFinishSpawning(const FTransform& UserTransform, bool bIsDefa
 
 		{
 			SCOPE_CYCLE_COUNTER(STAT_PostActorConstruction);
+			// IMPROBABLE-COMMENT: Call the Spatial version instead.
 			SpatialPostActorConstruction();
 		}
 	}
@@ -3060,8 +3061,10 @@ void AActor::SpatialPostActorConstruction()
 		PreInitializeComponents();
 	}
 
-	// If this is dynamically spawned replicated actor, defer calls to BeginPlay and UpdateOverlaps until replicated properties are deserialized
-	const bool bDeferBeginPlayAndUpdateOverlaps = true;
+	// IMPROBABLE-COMMENT: In contrast to engine behavior, we _always_ want to defer BeginPlay. The Blueprint hierarchy of this actor is
+	// initialized in the call to InitializeComponents below, and we can't update Blueprint replicated properties until after doing that.
+	// In order for Blueprint replicated properties to be correct in BeginPlay, we must defer here and call it manually later.
+	const bool bDeferBeginPlayAndUpdateOverlaps = true;  // (bExchangedRoles && RemoteRole == ROLE_Authority);
 
 	if (bActorsInitialized)
 	{
