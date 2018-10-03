@@ -2464,7 +2464,7 @@ static FString PrivatePropertiesOffsetGetters(const UStruct* Struct, const FStri
 
 	return Result;
 }
-#pragma optimize("", off)
+
 // IMPROBABLE-BEGIN
 FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 {
@@ -2505,7 +2505,6 @@ FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 	}
 	return Result;
 }
-#pragma optimize("", on)
 // IMPROBABLE-END
 
 void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
@@ -3121,11 +3120,6 @@ void FNativeClassHeaderGenerator::ExportGeneratedStructBodyMacros(FOutputDevice&
 		const FString StaticClassLine = FString::Printf(TEXT("\t%sstatic class UScriptStruct* StaticStruct();\r\n"), *RequiredAPI);
 		const FString PrivatePropertiesOffset = PrivatePropertiesOffsetGetters(Struct, StructNameCPP);
 		const FString SuperTypedef = BaseStruct ? FString::Printf(TEXT("\ttypedef %s Super;\r\n"), NameLookupCPP.GetNameCPP(BaseStruct)) : FString();
-
-		if (Struct->GetName() == TEXT("RepAttachment"))
-		{
-			const FString ObjectRefs2 = GenerateImprobableObjectRefsMacro(Struct);
-		}
 
 		// IMPROBABLE-BEGIN
 		const FString ObjectRefs = GenerateImprobableObjectRefsMacro(Struct);
