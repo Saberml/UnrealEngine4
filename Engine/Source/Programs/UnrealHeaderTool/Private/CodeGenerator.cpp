@@ -2465,7 +2465,7 @@ static FString PrivatePropertiesOffsetGetters(const UStruct* Struct, const FStri
 	return Result;
 }
 
-// IMPROBABLE-BEGIN
+// IMPROBABLE-BEGIN - Generate UObjectRefs
 FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
 {
 	FUHTStringBuilder Result;
