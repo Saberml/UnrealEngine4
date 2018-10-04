@@ -4779,7 +4779,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 		UMapProperty*   Map               = nullptr;
 		USetProperty*   Set               = nullptr; // TODO: Set Property
 		UProperty*      NewMapKeyProperty = nullptr;
-		// IMPROBABLE-BEGIN
+		// IMPROBABLE-BEGIN - Generate UObjectRefs
 		UProperty*      NewObjectRefProperty = nullptr;
 		// IMPROBABLE-END
 		UObject*        NewScope          = Scope;
@@ -4807,10 +4807,11 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			ObjectFlags       = RF_Public;
 			NewMapKeyProperty = CreateVariableProperty(*VarProperty.MapKeyProp, NewScope, *(PropertyName.ToString() + TEXT("_Key")), ObjectFlags, VariableCategory, CurrentSrcFile);
 		}
-		// IMPROBABLE-BEGIN
+		// IMPROBABLE-BEGIN - Generate UObjectRefs
 		else if (VarProperty.IsObject() && VariableCategory == EVariableCategory::Member 
 			&& !(VarProperty.PropertyFlags & CPF_RepSkip) && VarProperty.Type != CPT_Interface)
 		{
+			//
 			if (Scope->GetName() != TEXT("ExpressionInput")
 				&& Scope->GetName() != TEXT("MaterialInput")
 				&& Scope->GetName() != TEXT("MaterialAttributesInput")
@@ -4909,7 +4910,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			NewProperty->Next = Scope->Children;
 			Scope->Children = NewProperty;
 		}
-		// IMPROBABLE-BEGIN
+		// IMPROBABLE-BEGIN - Generate UObjectRefs
 		if (NewObjectRefProperty)
 		{
 			//Add the Object ref to the property list.
