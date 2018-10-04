@@ -2140,6 +2140,12 @@ public:
 	/** The class default object; used for delta serialization and object initialization */
 	UObject* ClassDefaultObject;
 
+	// IMPROBABLE-BEGIN - Actor proxies
+	/** The proxy default object; used for actor proxy interaction. */
+	UObject* ProxyDefaultObject;
+
+	// IMPROBABLE-END
+
 	/** Assemble reference token streams for all classes if they haven't had it assembled already */
 	static void AssembleReferenceTokenStreams();
 
@@ -2360,6 +2366,23 @@ public:
 		return ClassDefaultObject;
 	}
 
+	// IMPROBABLE-BEGIN - Actor proxies
+	/**
+	* Get the default proxy object from the class
+	* @param	bCreateIfNeeded if true (default) then the PDO is created if it is null
+	* @return		the PDO for this class
+	*/
+	UObject* GetProxyDefaultObject(bool bCreateIfNeeded = true)
+	{
+		if (ProxyDefaultObject == nullptr && bCreateIfNeeded)
+		{
+			CreateProxyDefaultObject();
+		}
+
+		return ProxyDefaultObject;
+	}
+	// IMPROBABLE-END
+
 	/**
 	 * Called after PostInitProperties during object construction to allow class specific initialization of an object instance.
 	 */
@@ -2379,6 +2402,14 @@ public:
 	 * @return The name of the CDO
 	 */
 	FName GetDefaultObjectName();
+
+	// IMPROBABLE-BEGIN
+	/**
+	* Get the name of the PDO for the this class
+	* @return The name of the PDO
+	*/
+	FName GetProxyDefaultObjectName();
+	// IMPROBABLE-END
 
 	/** Returns memory used to store temporary data on an instance, used by blueprints */
 	virtual uint8* GetPersistentUberGraphFrame(UObject* Obj, UFunction* FuncToCheck) const
@@ -2698,6 +2729,10 @@ protected:
 	 * @return		the CDO for this class
 	 **/
 	virtual UObject* CreateDefaultObject();
+
+	// IMPROBABLE-BEGIN - Actor proxies
+	virtual UObject* CreateProxyDefaultObject();
+	// IMPROBABLE-END
 
 #if HACK_HEADER_GENERATOR
 	// Required by UHT makefiles for internal data serialization.

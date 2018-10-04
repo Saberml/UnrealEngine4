@@ -582,6 +582,11 @@ struct COREUOBJECT_API FReferencerInformationList
 // Special prefix for default objects (the UObject in a UClass containing the default values, etc)
 #define DEFAULT_OBJECT_PREFIX TEXT("Default__")
 
+// IMPROBABLE-BEGIN - Actor proxies
+// Special prefix for default objects (the UObject in a UClass containing the default values, etc)
+#define PROXY_DEFAULT_OBJECT_PREFIX TEXT("ProxyDefault__")
+// IMPROBABLE-END
+
 ///////////////////////////////
 /// UObject definition macros
 ///////////////////////////////

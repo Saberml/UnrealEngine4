@@ -1138,6 +1138,7 @@ enum class ENotifyRegistrationType
 	NRT_Struct,
 	NRT_Enum,
 	NRT_Package,
+	NRT_ClassPDO, // IMPROBABLE-BEGIN - Actor proxies
 };
 
 enum class ENotifyRegistrationPhase
