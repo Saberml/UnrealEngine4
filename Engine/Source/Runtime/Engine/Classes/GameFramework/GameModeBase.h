@@ -529,6 +529,8 @@ protected:
 	/** Handles second half of RestartPlayer */
 	virtual void FinishRestartPlayer(AController* NewPlayer, const FRotator& StartRotation);
 
+	// IMPROBABLE-BEGIN Made ProcessClientTravel public
+public:
 	/**
 	 * Notifies all clients to travel to the specified URL.
 	 *
@@ -538,6 +540,8 @@ protected:
 	 * @param	bAbsolute		indicates which type of travel the server will perform (i.e. TRAVEL_Relative or TRAVEL_Absolute)
 	 */
 	virtual APlayerController* ProcessClientTravel(FString& URL, FGuid NextMapGuid, bool bSeamless, bool bAbsolute);
+protected:
+	// IMRPOBABLE-END
 
 	/** Handles initializing a seamless travel player, handles logic similar to InitNewPlayer */
 	virtual void InitSeamlessTravelPlayer(AController* NewController);
