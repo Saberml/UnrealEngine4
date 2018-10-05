@@ -2465,8 +2465,8 @@ static FString PrivatePropertiesOffsetGetters(const UStruct* Struct, const FStri
 	return Result;
 }
 
-// IMPROBABLE-BEGIN - Generate UObjectRefs
-FString GenerateImprobableObjectRefsMacro(const UStruct* Struct)
+// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
+FString GenerateSpatialOSContextMacro(const UStruct* Struct)
 {
 	FUHTStringBuilder Result;
 
@@ -2590,7 +2590,7 @@ void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 	}
 
 	FString PPOMacroName;
-	// IMPROBABLE-BEGIN - Generate UObjectRefs
+	// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 	FString ObjectRefsMacroName;
 	// IMPROBABLE-END
 
@@ -2779,9 +2779,9 @@ void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 				PPOMacroName = FString::Printf(TEXT("\t%s\r\n"), *PPOMacroNameRaw);
 				WriteMacro(OutGeneratedHeaderText, PPOMacroNameRaw, PrivatePropertiesOffsets);
 			}
-			// IMPROBABLE-BEGIN - Generate UObjectRefs
+			// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 			{
-				const FString ObjectRefs = GenerateImprobableObjectRefsMacro(Class);
+				const FString ObjectRefs = GenerateSpatialOSContextMacro(Class);
 				const FString ObjectRefsMacroNameRaw = SourceFile.GetGeneratedMacroName(ClassData, TEXT("_IMPROBABLE_OBJECT_REFS"));
 				ObjectRefsMacroName = FString::Printf(TEXT("\t%s\r\n"), *ObjectRefsMacroNameRaw);
 				WriteMacro(OutGeneratedHeaderText, ObjectRefsMacroNameRaw, ObjectRefs);
@@ -2810,13 +2810,13 @@ void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 		auto GeneratedBodyLine = bIsIInterface ? ClassData->GetInterfaceGeneratedBodyLine() : ClassData->GetGeneratedBodyLine();
 		auto LegacyGeneratedBody = FString(bIsIInterface ? TEXT("") : PPOMacroName)
 			+ ClassMacroCalls
-			// IMPROBABLE-BEGIN - Generate UObjectRefs
+			// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 			+ (bIsIInterface ? TEXT("") : StandardUObjectConstructorsMacroCall)
 			+ (bIsIInterface ? TEXT("") : ObjectRefsMacroName);
 			// IMPROBABLE-END
 		auto GeneratedBody = FString(bIsIInterface ? TEXT("") : PPOMacroName)
 			+ ClassNoPureDeclsMacroCalls
-			// IMPROBABLE-BEGIN - Generate UObjectRefs
+			// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 			+ (bIsIInterface ? TEXT("") : EnhancedUObjectConstructorsMacroCall)
 			+ (bIsIInterface ? TEXT("") : ObjectRefsMacroName);
 			// IMPROBABLE-END
@@ -3118,8 +3118,8 @@ void FNativeClassHeaderGenerator::ExportGeneratedStructBodyMacros(FOutputDevice&
 		const FString PrivatePropertiesOffset = PrivatePropertiesOffsetGetters(Struct, StructNameCPP);
 		const FString SuperTypedef = BaseStruct ? FString::Printf(TEXT("\ttypedef %s Super;\r\n"), NameLookupCPP.GetNameCPP(BaseStruct)) : FString();
 
-		// IMPROBABLE-BEGIN - Generate UObjectRefs
-		const FString ObjectRefs = GenerateImprobableObjectRefsMacro(Struct);
+		// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
+		const FString ObjectRefs = GenerateSpatialOSContextMacro(Struct);
 		const FString CombinedLine = FriendLine + StaticClassLine + PrivatePropertiesOffset + SuperTypedef + ObjectRefs;
 		// IMPROBABLE-END
 		const FString MacroName = SourceFile.GetGeneratedBodyMacroName(Struct->StructMacroDeclaredLineNumber);
@@ -4842,7 +4842,7 @@ FNativeClassHeaderGenerator::FNativeClassHeaderGenerator(
 			TEXT("#error \"%s.generated.h already included, missing '#pragma once' in %s.h\"")	LINE_TERMINATOR
 			TEXT("#endif")																		LINE_TERMINATOR
 			TEXT("#define %s")																	LINE_TERMINATOR
-			// IMPROBABLE-BEGIN - Generate UObjectRefs
+			// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 			TEXT("#include \"improbable/UnrealObjectRef.h\"")			LINE_TERMINATOR
 			// IMPROBABLE-END
 			LINE_TERMINATOR,

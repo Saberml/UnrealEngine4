@@ -4779,7 +4779,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 		UMapProperty*   Map               = nullptr;
 		USetProperty*   Set               = nullptr; // TODO: Set Property
 		UProperty*      NewMapKeyProperty = nullptr;
-		// IMPROBABLE-BEGIN - Generate UObjectRefs
+		// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 		UProperty*      NewObjectRefProperty = nullptr;
 		// IMPROBABLE-END
 		UObject*        NewScope          = Scope;
@@ -4807,7 +4807,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			ObjectFlags       = RF_Public;
 			NewMapKeyProperty = CreateVariableProperty(*VarProperty.MapKeyProp, NewScope, *(PropertyName.ToString() + TEXT("_Key")), ObjectFlags, VariableCategory, CurrentSrcFile);
 		}
-		// IMPROBABLE-BEGIN - Generate UObjectRefs
+		// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 		else if (VarProperty.IsObject() && VariableCategory == EVariableCategory::Member 
 			&& !(VarProperty.PropertyFlags & CPF_RepSkip) && VarProperty.Type != CPT_Interface)
 		{
@@ -4910,7 +4910,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			NewProperty->Next = Scope->Children;
 			Scope->Children = NewProperty;
 		}
-		// IMPROBABLE-BEGIN - Generate UObjectRefs
+		// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 		if (NewObjectRefProperty)
 		{
 			//Add the Object ref to the property list.
