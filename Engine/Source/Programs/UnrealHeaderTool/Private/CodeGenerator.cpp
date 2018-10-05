@@ -2468,6 +2468,9 @@ static FString PrivatePropertiesOffsetGetters(const UStruct* Struct, const FStri
 // IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 FString GenerateSpatialOSContextMacro(const UStruct* Struct)
 {
+	// This function iterates over each property in Struct that is a UObject and generates
+	// A FUnrealObjectRef for the property in the <ClassName>_IMPROBABLE_OBJECT_REFS macro within the
+	// <ClassName>.generated.h file.
 	FUHTStringBuilder Result;
 
 	for (const UProperty* Property : TFieldRange<UProperty>(Struct, EFieldIteratorFlags::ExcludeSuper))
@@ -2476,26 +2479,30 @@ FString GenerateSpatialOSContextMacro(const UStruct* Struct)
 		{
 			if (Property->IsA<UArrayProperty>())
 			{
+				// Add an array of FUnrealObjectRef's mapping each entry in the array to an FUnrealObjectRef.
+				// TODO: Implement full support for arrays. (UNR-633)
 				const UArrayProperty* ArrayProperty = Cast<const UArrayProperty>(Property);
 				const UProperty* InnerProperty = ArrayProperty->Inner;
 
 				if (InnerProperty->IsA<UObjectPropertyBase>())
 				{
 					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
-					Result.Logf(TEXT("\tTArray<FUnrealObjectRef> %s_Context;") LINE_TERMINATOR, *Property->GetName());
+					Result.Logf(TEXT("\tTArray<FUnrealObjectRef> %s_SpatialOSContext;") LINE_TERMINATOR, *Property->GetName());
 				}
 			}
 			else if (Property->IsA<UObjectPropertyBase>())
 			{
 				if (Property->ArrayDim > 1)
 				{
+					// Add an array of FUnrealObjectRef's mapping each entry in the array to an FUnrealObjectRef.
+					// TODO: Implement full support for arrays. (UNR-633)
 					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
-					Result.Logf(TEXT("\tTArray<FUnrealObjectRef> %s_Context;") LINE_TERMINATOR, *Property->GetName());
+					Result.Logf(TEXT("\tTArray<FUnrealObjectRef> %s_SpatialOSContext;") LINE_TERMINATOR, *Property->GetName());
 				}
 				else
 				{
 					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
-					Result.Logf(TEXT("\tFUnrealObjectRef %s_Context;") LINE_TERMINATOR, *Property->GetName());
+					Result.Logf(TEXT("\tFUnrealObjectRef %s_SpatialOSContext;") LINE_TERMINATOR, *Property->GetName());
 				}
 			}
 		}
