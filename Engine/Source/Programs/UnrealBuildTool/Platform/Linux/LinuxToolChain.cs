@@ -643,7 +643,7 @@ namespace UnrealBuildTool
 					Result += String.Format(" -target {0}", LinkEnvironment.Architecture);        // Set target triple
 				}
 				string SysRootPath = BaseLinuxPath.TrimEnd(new char[] { '\\', '/' });
-				Result += String.Format(" \"--sysroot={0}\"", SysRootPath);
+				Result += String.Format(" --sysroot=\"{0}\"", SysRootPath);
 			}
 
 			return Result;

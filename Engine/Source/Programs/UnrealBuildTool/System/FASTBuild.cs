@@ -5,6 +5,7 @@
 // Tested with Windows 10, Visual Studio 2015/2017, Unreal Engine 4.19.1, FastBuild v0.95
 // Durango is fully supported (Compiles with VS2015).
 // Orbis will likely require some changes.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -20,22 +21,24 @@ namespace UnrealBuildTool
 		/*---- Configurable User settings ----*/
 
 		// Used to specify a non-standard location for the FBuild.exe, for example if you have not added it to your PATH environment variable.
-		public static string FBuildExePathOverride = Environment.GetEnvironmentVariable("FASTBUILD_EXE_PATH") ?? string.Empty;
+		public static string FBuildExePathOverride =
+			Environment.GetEnvironmentVariable("FASTBUILD_EXE_PATH") ?? string.Empty;
 
 		// Controls network build distribution
 		private bool bEnableDistribution = true;
+
 
 		// Controls whether to use caching at all. CachePath and CacheMode are only relevant if this is enabled.
 		private bool bEnableCaching = true;
 
 		// Location of the shared cache, it could be a local or network path (i.e: @"\\DESKTOP-BEAST\FASTBuildCache").
 		// Only relevant if bEnableCaching is true;
-		private string CachePath = Environment.GetEnvironmentVariable("FASTBUILD_CACHE_PATH");
+		private readonly string CachePath = Environment.GetEnvironmentVariable("FASTBUILD_CACHE_PATH");
 
 		public enum eCacheMode
 		{
 			ReadWrite, // This machine will both read and write to the cache
-			ReadOnly,  // This machine will only read from the cache, use for developer machines when you have centralized build machines
+			ReadOnly, // This machine will only read from the cache, use for developer machines when you have centralized build machines
 			WriteOnly, // This machine will only write from the cache, use for build machines when you have centralized build machines
 		}
 
@@ -81,17 +84,19 @@ namespace UnrealBuildTool
 					// PATH variable may contain illegal characters; just ignore them.
 				}
 			}
+
 			return false;
 		}
 
 		private HashSet<string> ForceLocalCompileModules = new HashSet<string>()
-						 {"Module.ProxyLODMeshReduction", "Module.ClothingSystemRuntime"};
+			{"Module.ProxyLODMeshReduction", "Module.ClothingSystemRuntime"};
 
 		private enum FBBuildType
 		{
 			Windows,
 			XBOne,
-			PS4
+			PS4,
+			LinuxCrossCompile
 		}
 
 		private FBBuildType BuildType = FBBuildType.Windows;
@@ -113,16 +118,30 @@ namespace UnrealBuildTool
 					BuildType = FBBuildType.XBOne;
 					return;
 				}
-				else if (action.CommandPath.Contains("Microsoft")) //Not a great test.
+				else if (action.CommandPath.Contains("Microsoft")) // Not a great test.
 				{
 					BuildType = FBBuildType.Windows;
+					return;
+				}
+				else if (action.CommandPath.Contains("clang++") || action.CommandArguments.Contains("gnu-ar.exe")
+				) // Not a great test.
+				{
+					BuildType = FBBuildType.LinuxCrossCompile;
 					return;
 				}
 			}
 		}
 
-		private bool IsMSVC() { return BuildType == FBBuildType.Windows || BuildType == FBBuildType.XBOne; }
-		private bool IsXBOnePDBUtil(Action action) { return action.CommandPath.Contains("XboxOnePDBFileUtil.exe"); }
+		private bool IsMSVC()
+		{
+			return BuildType == FBBuildType.Windows || BuildType == FBBuildType.XBOne;
+		}
+
+		private bool IsXBOnePDBUtil(Action action)
+		{
+			return action.CommandPath.Contains("XboxOnePDBFileUtil.exe");
+		}
+
 		private string GetCompilerName()
 		{
 			switch (BuildType)
@@ -131,6 +150,7 @@ namespace UnrealBuildTool
 				case FBBuildType.XBOne:
 				case FBBuildType.Windows: return "UE4Compiler";
 				case FBBuildType.PS4: return "UE4PS4Compiler";
+				case FBBuildType.LinuxCrossCompile: return "UE4LinuxCrossCompiler";
 			}
 		}
 
@@ -142,7 +162,8 @@ namespace UnrealBuildTool
 			{
 				DetectBuildType(Actions);
 
-				string FASTBuildFilePath = Path.Combine(UnrealBuildTool.EngineDirectory.FullName, "Intermediate", "Build", "fbuild.bff");
+				string FASTBuildFilePath = Path.Combine(UnrealBuildTool.EngineDirectory.FullName, "Intermediate",
+					"Build", "fbuild.bff");
 				if (CreateBffFile(Actions, FASTBuildFilePath))
 				{
 					FASTBuildResult = ExecuteBffFile(FASTBuildFilePath);
@@ -156,12 +177,6 @@ namespace UnrealBuildTool
 			return FASTBuildResult;
 		}
 
-		private void AddText(string StringToWrite)
-		{
-			byte[] Info = new System.Text.UTF8Encoding(true).GetBytes(StringToWrite);
-			bffOutputFileStream.Write(Info, 0, Info.Length);
-		}
-
 
 		private string SubstituteEnvironmentVariables(string commandLineString)
 		{
@@ -169,11 +184,13 @@ namespace UnrealBuildTool
 			outputString = outputString.Replace("$(SCE_ORBIS_SDK_DIR)", "$SCE_ORBIS_SDK_DIR$");
 			outputString = outputString.Replace("$(DXSDK_DIR)", "$DXSDK_DIR$");
 			outputString = outputString.Replace("$(CommonProgramFiles)", "$CommonProgramFiles$");
+			outputString = outputString.Replace("${ORIGIN}", "^${ORIGIN}");
 
 			return outputString;
 		}
 
-		private Dictionary<string, string> ParseCommandLineOptions(string CompilerCommandLine, string[] SpecialOptions, bool SaveResponseFile = false)
+		private Dictionary<string, string> ParseCommandLineOptions(string CompilerCommandLine, string[] SpecialOptions,
+			bool SaveResponseFile = false)
 		{
 			Dictionary<string, string> ParsedCompilerOptions = new Dictionary<string, string>();
 
@@ -181,24 +198,34 @@ namespace UnrealBuildTool
 			CompilerCommandLine = SubstituteEnvironmentVariables(CompilerCommandLine);
 
 			// Some tricky defines /DTROUBLE=\"\\\" abc  123\\\"\" aren't handled properly by either Unreal or Fastbuild, but we do our best.
-			char[] SpaceChar = { ' ' };
-			string[] RawTokens = CompilerCommandLine.Trim().Split(' ');
+			var RawTokens = CompilerCommandLine.Trim().Split(' ').ToList();
 			List<string> ProcessedTokens = new List<string>();
 			bool QuotesOpened = false;
 			string PartialToken = "";
 			string ResponseFilePath = "";
 
-			if (RawTokens.Length >= 1 && RawTokens[0].StartsWith("@\"")) //Response files are in 4.13 by default. Changing VCToolChain to not do this is probably better.
+			var responseFileIndex = RawTokens.FindIndex(token => token.StartsWith("@"));
+
+			if (responseFileIndex != -1
+			) //Response files are in 4.13 by default. Changing VCToolChain to not do this is probably better.
 			{
-				string responseCommandline = RawTokens[0];
+				var responseCommandline = RawTokens[responseFileIndex];
+				RawTokens.RemoveAt(responseFileIndex);
 
 				// If we had spaces inside the response file path, we need to reconstruct the path.
-				for (int i = 1; i < RawTokens.Length; ++i)
+
+				if (responseCommandline[1] == '\"')
 				{
-					responseCommandline += " " + RawTokens[i];
+					for (int i = responseFileIndex; i < RawTokens.Count && RawTokens[i] != "\""; ++i)
+					{
+						responseCommandline += " " + RawTokens[i];
+						RawTokens.RemoveAt(i);
+					}
+
+					// Skip the leading @, trim the quotes
+					ResponseFilePath = responseCommandline.Substring(1).Trim('\"');
 				}
 
-				ResponseFilePath = responseCommandline.Substring(2, responseCommandline.Length - 3); // bit of a bodge to get the @"response.txt" path...
 				try
 				{
 					string ResponseFileText = File.ReadAllText(ResponseFilePath);
@@ -206,20 +233,24 @@ namespace UnrealBuildTool
 					// Make sure we substituted the known environment variables with corresponding BFF friendly imported vars
 					ResponseFileText = SubstituteEnvironmentVariables(ResponseFileText);
 
-					string[] Separators = { "\n", " ", "\r" };
+					string[] Separators = {"\n", " ", "\r"};
 					if (File.Exists(ResponseFilePath))
-						RawTokens = ResponseFileText.Split(Separators, StringSplitOptions.RemoveEmptyEntries); //Certainly not ideal
+					{
+						RawTokens.AddRange(ResponseFileText.Split(Separators,
+							StringSplitOptions.RemoveEmptyEntries)); //Certainly not ideal
+					}
 				}
 				catch (Exception e)
 				{
-					Console.WriteLine("Looks like a response file in: " + CompilerCommandLine + ", but we could not load it! " + e.Message);
+					Console.WriteLine("Looks like a response file in: " + CompilerCommandLine +
+					                  ", but we could not load it! " + e.Message);
 					ResponseFilePath = "";
 				}
 			}
 
 			// Raw tokens being split with spaces may have split up some two argument options and
 			// paths with multiple spaces in them also need some love
-			for (int i = 0; i < RawTokens.Length; ++i)
+			for (int i = 0; i < RawTokens.Count; ++i)
 			{
 				string Token = RawTokens[i];
 				if (string.IsNullOrEmpty(Token))
@@ -256,14 +287,15 @@ namespace UnrealBuildTool
 						PartialToken = Token;
 						++i;
 						bool AddedToken = false;
-						for (; i < RawTokens.Length; ++i)
+						for (; i < RawTokens.Count; ++i)
 						{
 							string NextToken = RawTokens[i];
 							if (string.IsNullOrEmpty(NextToken))
 							{
 								PartialToken += " ";
 							}
-							else if (!NextToken.EndsWith("\\\"") && NextToken.EndsWith("\"")) //Looking for a token that ends with a non-escaped "
+							else if (!NextToken.EndsWith("\\\"") && NextToken.EndsWith("\"")
+							) //Looking for a token that ends with a non-escaped "
 							{
 								ProcessedTokens.Add(PartialToken + " " + NextToken);
 								AddedToken = true;
@@ -274,12 +306,16 @@ namespace UnrealBuildTool
 								PartialToken += " " + NextToken;
 							}
 						}
+
 						if (!AddedToken)
 						{
-							Console.WriteLine("Warning! Looks like an unterminated string in tokens. Adding PartialToken and hoping for the best. Command line: " + CompilerCommandLine);
+							Console.WriteLine(
+								"Warning! Looks like an unterminated string in tokens. Adding PartialToken and hoping for the best. Command line: " +
+								CompilerCommandLine);
 							ProcessedTokens.Add(PartialToken);
 						}
 					}
+
 					continue;
 				}
 
@@ -338,13 +374,22 @@ namespace UnrealBuildTool
 					continue;
 				}
 
-				if (Token == "/I" || Token == "/l" || Token == "/D" || Token == "-D" || Token == "-x") // Skip tokens with values, I for cpp includes, l for resource compiler includes
+				if (Token == "/I" || Token == "/l" || Token == "/D" || Token == "-D" || Token == "-x" ||
+				    Token == "-target" ||
+				    Token == "-include"
+				) // Skip tokens with values, I for cpp includes, l for resource compiler includes
 				{
 					++i;
 				}
 				else if (!Token.StartsWith("/") && !Token.StartsWith("-"))
 				{
 					ParsedCompilerOptions["InputFile"] = Token;
+
+					if (Token.Trim('\"').IndexOfAny(Path.GetInvalidPathChars()) != -1)
+					{
+						Console.WriteLine("Found an input file that was invalid: {0}", Token);
+					}
+
 					ProcessedTokens.RemoveAt(i);
 					break;
 				}
@@ -380,6 +425,7 @@ namespace UnrealBuildTool
 					}
 				}
 			}
+
 			if (NumSortErrors > 0)
 			{
 				Actions = new List<Action>();
@@ -390,6 +436,7 @@ namespace UnrealBuildTool
 					{
 						continue;
 					}
+
 					Action Action = InActions[ActionIndex];
 					foreach (FileItem Item in Action.PrerequisiteItems)
 					{
@@ -400,13 +447,16 @@ namespace UnrealBuildTool
 							{
 								continue;
 							}
+
 							Actions.Add(Item.ProducingAction);
 							UsedActions.Add(DepIndex);
 						}
 					}
+
 					Actions.Add(Action);
 					UsedActions.Add(ActionIndex);
 				}
+
 				for (int ActionIndex = 0; ActionIndex < Actions.Count; ActionIndex++)
 				{
 					Action Action = Actions[ActionIndex];
@@ -420,7 +470,8 @@ namespace UnrealBuildTool
 								Console.WriteLine("Action is not topologically sorted.");
 								Console.WriteLine("  {0} {1}", Action.CommandPath, Action.CommandArguments);
 								Console.WriteLine("Dependency");
-								Console.WriteLine("  {0} {1}", Item.ProducingAction.CommandPath, Item.ProducingAction.CommandArguments);
+								Console.WriteLine("  {0} {1}", Item.ProducingAction.CommandPath,
+									Item.ProducingAction.CommandArguments);
 								throw new BuildException("Cyclical Dependency in action graph.");
 							}
 						}
@@ -431,12 +482,13 @@ namespace UnrealBuildTool
 			return Actions;
 		}
 
-		private string GetOptionValue(Dictionary<string, string> OptionsDictionary, string Key, Action Action, bool ProblemIfNotFound = false)
+		private string GetOptionValue(Dictionary<string, string> OptionsDictionary, string Key, Action Action,
+			bool ProblemIfNotFound = false)
 		{
 			string Value = string.Empty;
 			if (OptionsDictionary.TryGetValue(Key, out Value))
 			{
-				return Value.Trim(new Char[] { '\"' });
+				return Value.Trim(new Char[] {'\"'});
 			}
 
 			if (ProblemIfNotFound)
@@ -448,46 +500,25 @@ namespace UnrealBuildTool
 			return Value;
 		}
 
-		public string GetRegistryValue(string keyName, string valueName, object defaultValue)
-		{
-			object returnValue = (string)Microsoft.Win32.Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\" + keyName, valueName, defaultValue);
-			if (returnValue != null)
-				return returnValue.ToString();
-
-			returnValue = Microsoft.Win32.Registry.GetValue("HKEY_CURRENT_USER\\SOFTWARE\\" + keyName, valueName, defaultValue);
-			if (returnValue != null)
-				return returnValue.ToString();
-
-			returnValue = (string)Microsoft.Win32.Registry.GetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\" + keyName, valueName, defaultValue);
-			if (returnValue != null)
-				return returnValue.ToString();
-
-			returnValue = Microsoft.Win32.Registry.GetValue("HKEY_CURRENT_USER\\SOFTWARE\\Wow6432Node\\" + keyName, valueName, defaultValue);
-			if (returnValue != null)
-				return returnValue.ToString();
-
-			return defaultValue.ToString();
-		}
-
-		private void WriteEnvironmentSetup()
+		private void WriteEnvironmentSetup(FileStream stream)
 		{
 			VCEnvironment VCEnv = null;
 			try
 			{
 				// This may fail if the caller emptied PATH; we try to ignore the problem since
 				// it probably means we are building for another platform.
-                if(BuildType == FBBuildType.Windows)
-                {
-                    VCEnv = VCEnvironment.SetEnvironment(CppPlatform.Win64, WindowsCompiler.VisualStudio2017);
-                }
-                else if (BuildType == FBBuildType.XBOne)
-                {
-                    // If you have XboxOne source access, uncommenting the line below will be better for selecting the appropriate version of the compiler.
+				if (BuildType == FBBuildType.Windows)
+				{
+					VCEnv = VCEnvironment.SetEnvironment(CppPlatform.Win64, WindowsCompiler.VisualStudio2017);
+				}
+				else if (BuildType == FBBuildType.XBOne)
+				{
+					// If you have XboxOne source access, uncommenting the line below will be better for selecting the appropriate version of the compiler.
 					// Translate the XboxOne compiler to the right Windows compiler to set the VC environment vars correctly...
-                    //WindowsCompiler windowsCompiler = XboxOnePlatform.GetDefaultCompiler() == XboxOneCompiler.VisualStudio2015 ? WindowsCompiler.VisualStudio2015 : WindowsCompiler.VisualStudio2017;
-                    //VCEnv = VCEnvironment.SetEnvironment(CppPlatform.Win64, windowsCompiler);
-                }
-            }
+					//WindowsCompiler windowsCompiler = XboxOnePlatform.GetDefaultCompiler() == XboxOneCompiler.VisualStudio2015 ? WindowsCompiler.VisualStudio2015 : WindowsCompiler.VisualStudio2017;
+					//VCEnv = VCEnvironment.SetEnvironment(CppPlatform.Win64, windowsCompiler);
+				}
+			}
 			catch (Exception)
 			{
 				Console.WriteLine("Failed to get Visual Studio environment.");
@@ -497,22 +528,22 @@ namespace UnrealBuildTool
 			Dictionary<string, string> envVars = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 			foreach (DictionaryEntry entry in Environment.GetEnvironmentVariables())
 			{
-				envVars[(string)entry.Key] = (string)entry.Value;
+				envVars[(string) entry.Key] = (string) entry.Value;
 			}
 
 			if (envVars.ContainsKey("CommonProgramFiles"))
 			{
-				AddText("#import CommonProgramFiles\n");
+				stream.WriteText("#import CommonProgramFiles\n");
 			}
 
 			if (envVars.ContainsKey("DXSDK_DIR"))
 			{
-				AddText("#import DXSDK_DIR\n");
+				stream.WriteText("#import DXSDK_DIR\n");
 			}
 
 			if (envVars.ContainsKey("DurangoXDK"))
 			{
-				AddText("#import DurangoXDK\n");
+				stream.WriteText("#import DurangoXDK\n");
 			}
 
 			if (VCEnv != null)
@@ -537,108 +568,141 @@ namespace UnrealBuildTool
 						throw new BuildException(exceptionString);
 				}
 
-				AddText(string.Format(".WindowsSDKBasePath = '{0}'\n", VCEnv.WindowsSDKDir));
+				stream.WriteText(".WindowsSDKBasePath = '{0}'\n", VCEnv.WindowsSDKDir);
 
-				AddText("Compiler('UE4ResourceCompiler') \n{\n");
-				AddText("\t.Executable = '$WindowsSDKBasePath$/bin/x64/rc.exe'\n");
-                AddText("\t.CompilerFamily  = 'custom'\n");
-                AddText("}\n\n");
+				stream.WriteText("Compiler('UE4ResourceCompiler') \n{\n");
+				stream.WriteText("\t.Executable = '$WindowsSDKBasePath$/bin/x64/rc.exe'\n");
+				stream.WriteText("\t.CompilerFamily  = 'custom'\n");
+				stream.WriteText("}\n\n");
 
 
-                AddText("Compiler('UE4Compiler') \n{\n");
+				stream.WriteText("Compiler('UE4Compiler') \n{\n");
 
-    			AddText(string.Format("\t.Root = '{0}'\n", VCEnv.VCToolPath64));
-                AddText("\t.Executable = '$Root$/cl.exe'\n");
-				AddText("\t.ExtraFiles =\n\t{\n");
-				AddText("\t\t'$Root$/c1.dll'\n");
-				AddText("\t\t'$Root$/c1xx.dll'\n");
-				AddText("\t\t'$Root$/c2.dll'\n");
+				stream.WriteText("\t.Root = '{0}'\n", VCEnv.VCToolPath64);
+				stream.WriteText("\t.Executable = '$Root$/cl.exe'\n");
+				stream.WriteText("\t.ExtraFiles =\n\t{\n");
+				stream.WriteText("\t\t'$Root$/c1.dll'\n");
+				stream.WriteText("\t\t'$Root$/c1xx.dll'\n");
+				stream.WriteText("\t\t'$Root$/c2.dll'\n");
 
-                if (File.Exists(VCEnv.VCToolPath64 + "1033/clui.dll")) //Check English first...
+				if (File.Exists(VCEnv.VCToolPath64 + "1033/clui.dll")) //Check English first...
 				{
-					AddText("\t\t'$Root$/1033/clui.dll'\n");
+					stream.WriteText("\t\t'$Root$/1033/clui.dll'\n");
 				}
 				else
 				{
-					var numericDirectories = Directory.GetDirectories(VCEnv.VCToolPath64.ToString()).Where(d => Path.GetFileName(d).All(char.IsDigit));
+					var numericDirectories = Directory.GetDirectories(VCEnv.VCToolPath64.ToString())
+						.Where(d => Path.GetFileName(d).All(char.IsDigit));
 					var cluiDirectories = numericDirectories.Where(d => Directory.GetFiles(d, "clui.dll").Any());
 					if (cluiDirectories.Any())
 					{
-						AddText(string.Format("\t\t'$Root$/{0}/clui.dll'\n", Path.GetFileName(cluiDirectories.First())));
+						stream.WriteText("\t\t'$Root$/{0}/clui.dll'\n", Path.GetFileName(cluiDirectories.First()));
 					}
 				}
-				AddText("\t\t'$Root$/mspdbsrv.exe'\n");
-				AddText("\t\t'$Root$/mspdbcore.dll'\n");
 
-                AddText(string.Format("\t\t'$Root$/mspft{0}.dll'\n", platformVersionNumber));
-				AddText(string.Format("\t\t'$Root$/msobj{0}.dll'\n", platformVersionNumber));
-				AddText(string.Format("\t\t'$Root$/mspdb{0}.dll'\n", platformVersionNumber));
+				stream.WriteText("\t\t'$Root$/mspdbsrv.exe'\n");
+				stream.WriteText("\t\t'$Root$/mspdbcore.dll'\n");
 
-                if(VCEnv.Compiler == WindowsCompiler.VisualStudio2015)
-                {
-                    AddText(string.Format("\t\t'{0}/redist/x64/Microsoft.VC{1}.CRT/msvcp{2}.dll'\n", VCEnv.VCInstallDir, platformVersionNumber, platformVersionNumber));
-                    AddText(string.Format("\t\t'{0}/redist/x64/Microsoft.VC{1}.CRT/vccorlib{2}.dll'\n", VCEnv.VCInstallDir, platformVersionNumber, platformVersionNumber));
-                }
-                else
-                {
+				stream.WriteText("\t\t'$Root$/mspft{0}.dll'\n", platformVersionNumber);
+				stream.WriteText("\t\t'$Root$/msobj{0}.dll'\n", platformVersionNumber);
+				stream.WriteText("\t\t'$Root$/mspdb{0}.dll'\n", platformVersionNumber);
+
+				if (VCEnv.Compiler == WindowsCompiler.VisualStudio2015)
+				{
+					stream.WriteText("\t\t'{0}/redist/x64/Microsoft.VC{1}.CRT/msvcp{2}.dll'\n", VCEnv.VCInstallDir,
+						platformVersionNumber, platformVersionNumber);
+					stream.WriteText("\t\t'{0}/redist/x64/Microsoft.VC{1}.CRT/vccorlib{2}.dll'\n", VCEnv.VCInstallDir,
+						platformVersionNumber, platformVersionNumber);
+				}
+				else
+				{
 					// Scan in the Visual studio directory for the installed version. There's only one present at a time, so far.
-	                var rootPath = Path.Combine(VCEnv.VCInstallDir.FullName, "Redist", "MSVC");
-	                var version = Directory.GetDirectories(rootPath, "*.*").FirstOrDefault();
-	                if (version == null)
-	                {
-		                throw new Exception(string.Format("Could not find a version of the VC runtime at {0}", rootPath));
-	                }
+					var rootPath = Path.Combine(VCEnv.VCInstallDir.FullName, "Redist", "MSVC");
+					var version = Directory.GetDirectories(rootPath, "*.*").FirstOrDefault();
+					if (version == null)
+					{
+						throw new Exception(
+							string.Format("Could not find a version of the VC runtime at {0}", rootPath));
+					}
 
-	                version = Path.GetFileName(version);
+					version = Path.GetFileName(version);
 
 					// VS 2017 is really confusing in terms of version numbers and paths so these values might need to be modified depending on what version of the tool chain you
 					// chose to install.
-                    AddText(string.Format("\t\t'{0}/Redist/MSVC/{2}/x64/Microsoft.VC141.CRT/msvcp{1}.dll'\n", VCEnv.VCInstallDir, platformVersionNumber, version));
-                    AddText(string.Format("\t\t'{0}/Redist/MSVC/{2}/x64/Microsoft.VC141.CRT/vccorlib{1}.dll'\n", VCEnv.VCInstallDir, platformVersionNumber, version));
-                }
+					stream.WriteText("\t\t'{0}/Redist/MSVC/{2}/x64/Microsoft.VC141.CRT/msvcp{1}.dll'\n",
+						VCEnv.VCInstallDir, platformVersionNumber, version);
+					stream.WriteText("\t\t'{0}/Redist/MSVC/{2}/x64/Microsoft.VC141.CRT/vccorlib{1}.dll'\n",
+						VCEnv.VCInstallDir, platformVersionNumber, version);
+				}
 
-                AddText("\t}\n"); //End extra files
+				stream.WriteText("\t}\n"); //End extra files
 
-				AddText("}\n\n"); //End compiler
+				stream.WriteText("}\n\n"); //End compiler
 			}
 
 			if (envVars.ContainsKey("SCE_ORBIS_SDK_DIR"))
 			{
-				AddText(string.Format(".SCE_ORBIS_SDK_DIR = '{0}'\n", envVars["SCE_ORBIS_SDK_DIR"]));
-				AddText(string.Format(".PS4BasePath = '{0}/host_tools/bin'\n\n", envVars["SCE_ORBIS_SDK_DIR"]));
-				AddText("Compiler('UE4PS4Compiler') \n{\n");
-				AddText("\t.Executable = '$PS4BasePath$/orbis-clang.exe'\n");
-				AddText("}\n\n");
+				stream.WriteText(".SCE_ORBIS_SDK_DIR = '{0}'\n", envVars["SCE_ORBIS_SDK_DIR"]);
+				stream.WriteText(".PS4BasePath = '{0}/host_tools/bin'\n\n", envVars["SCE_ORBIS_SDK_DIR"]);
+				stream.WriteText("Compiler('UE4PS4Compiler') \n{\n");
+				stream.WriteText("\t.Executable = '$PS4BasePath$/orbis-clang.exe'\n");
+				stream.WriteText("}\n\n");
 			}
 
-			AddText("Settings \n{\n");
+			if (envVars.ContainsKey("LINUX_MULTIARCH_ROOT"))
+			{
+				stream.WriteText(".LINUX_MULTIARCH_ROOT = '{0}'\n", envVars["LINUX_MULTIARCH_ROOT"]);
+				stream.WriteText(".LinuxCrossCompilerBasePath = '{0}/x86_64-unknown-linux-gnu/bin'\n\n",
+					envVars["LINUX_MULTIARCH_ROOT"]);
+				stream.WriteText("Compiler('UE4LinuxCrossCompiler') \n{\n");
+				stream.WriteText("\t.Executable = '$LinuxCrossCompilerBasePath$/clang++.exe'\n");
+				stream.WriteText("}\n\n");
+			}
+
+			stream.WriteText("Settings \n{\n");
 
 			// Optional cachePath user setting
 			if (bEnableCaching && CachePath != "")
 			{
-				AddText(string.Format("\t.CachePath = '{0}'\n", CachePath));
+				stream.WriteText("\t.CachePath = '{0}'\n", CachePath);
 			}
 
 			//Start Environment
-			AddText("\t.Environment = \n\t{\n");
+			stream.WriteText("\t.Environment = \n\t{\n");
 			if (VCEnv != null)
-            {
-                AddText(string.Format("\t\t\"PATH={0}\\Common7\\IDE\\;{1}\",\n", VCEnv.VCInstallDir, VCEnv.VCToolPath64));
-            }
-            if (envVars.ContainsKey("TMP"))
-				AddText(string.Format("\t\t\"TMP={0}\",\n", envVars["TMP"]));
-			if (envVars.ContainsKey("SystemRoot"))
-				AddText(string.Format("\t\t\"SystemRoot={0}\",\n", envVars["SystemRoot"]));
-			if (envVars.ContainsKey("INCLUDE"))
-				AddText(string.Format("\t\t\"INCLUDE={0}\",\n", envVars["INCLUDE"]));
-			if (envVars.ContainsKey("LIB"))
-				AddText(string.Format("\t\t\"LIB={0}\",\n", envVars["LIB"]));
+			{
+				stream.WriteText("\t\t\"PATH={0}\\Common7\\IDE\\;{1}\",\n", VCEnv.VCInstallDir, VCEnv.VCToolPath64);
+			}
 
-			AddText("\t}\n"); //End environment
-			AddText("}\n\n"); //End Settings
+			if (envVars.ContainsKey("TMP"))
+				stream.WriteText("\t\t\"TMP={0}\",\n", envVars["TMP"]);
+			if (envVars.ContainsKey("SystemRoot"))
+				stream.WriteText("\t\t\"SystemRoot={0}\",\n", envVars["SystemRoot"]);
+			if (envVars.ContainsKey("INCLUDE"))
+				stream.WriteText("\t\t\"INCLUDE={0}\",\n", envVars["INCLUDE"]);
+			if (envVars.ContainsKey("LIB"))
+				stream.WriteText("\t\t\"LIB={0}\",\n", envVars["LIB"]);
+
+			stream.WriteText("\t}\n"); //End environment
+			stream.WriteText("}\n\n"); //End Settings
 		}
 
-		private void AddCompileAction(Action Action, int ActionIndex, List<int> DependencyIndices)
+		private string GetCommandLineArguments(Action Action)
+		{
+			var MergedCommandArguments = Action.CommandArguments;
+
+			if (TryGetResponseFile(Action.CommandArguments, out var ResponseFileName, out var ResponseFileContent))
+			{
+				MergedCommandArguments = MergedCommandArguments + " " + ResponseFileContent;
+				MergedCommandArguments = MergedCommandArguments.Replace(string.Format("@\"{0}\"",ResponseFileName), string.Empty)
+					.Replace("\r", string.Empty).Replace("\n", " ");
+			}
+
+			return MergedCommandArguments;
+		}
+
+		private void AddCompileAction(FileStream stream, Action Action, int ActionIndex,
+			List<int> DependencyIndices)
 		{
 			string CompilerName = GetCompilerName();
 			if (Action.CommandPath.Contains("rc.exe"))
@@ -646,18 +710,15 @@ namespace UnrealBuildTool
 				CompilerName = "UE4ResourceCompiler";
 			}
 
-			string[] SpecialCompilerOptions = { "/Fo", "/fo", "/Yc", "/Yu", "/Fp", "-o" };
-			var ParsedCompilerOptions = ParseCommandLineOptions(Action.CommandArguments, SpecialCompilerOptions);
+			string OutputObjectFileName;
+			List<string> InputFiles;
 
-			string OutputObjectFileName = GetOptionValue(ParsedCompilerOptions, IsMSVC() ? "/Fo" : "-o", Action, ProblemIfNotFound: !IsMSVC());
+			var MergedCommandArguments = GetCommandLineArguments(Action);
+			MergedCommandArguments = RewriteCompilerArguments(MergedCommandArguments, out OutputObjectFileName, out InputFiles);
 
-			if (IsMSVC() && string.IsNullOrEmpty(OutputObjectFileName)) // Didn't find /Fo, try /fo
+			if (string.IsNullOrEmpty(OutputObjectFileName)) 
 			{
-				OutputObjectFileName = GetOptionValue(ParsedCompilerOptions, "/fo", Action, ProblemIfNotFound: true);
-			}
-
-			if (string.IsNullOrEmpty(OutputObjectFileName)) //No /Fo or /fo, we're probably in trouble.
-			{
+				//No /Fo or /fo, we're probably in trouble.
 				Console.WriteLine("We have no OutputObjectFileName. Bailing.");
 				return;
 			}
@@ -670,101 +731,131 @@ namespace UnrealBuildTool
 				return;
 			}
 
-			string InputFile = GetOptionValue(ParsedCompilerOptions, "InputFile", Action, ProblemIfNotFound: true);
-			if (string.IsNullOrEmpty(InputFile))
+			if (!InputFiles.Any())
 			{
 				Console.WriteLine("We have no InputFile. Bailing.");
 				return;
 			}
 
-			AddText(string.Format("ObjectList('Action_{0}')\n{{\n", ActionIndex));
-			AddText(string.Format("\t.Compiler = '{0}' \n", CompilerName));
-			AddText(string.Format("\t.CompilerInputFiles = \"{0}\"\n", InputFile));
-			AddText(string.Format("\t.CompilerOutputPath = \"{0}\"\n", IntermediatePath));
+			stream.WriteText("; {0}\n", MergedCommandArguments);
+			stream.WriteText("ObjectList('Action_{0}')\n{{\n", ActionIndex);
+			stream.WriteText("\t.Compiler = '{0}' \n", CompilerName);
+			stream.WriteText("\t.CompilerInputFiles = {{\n{0}\n}}\n", string.Join(",", InputFiles.Select(f => string.Format("'{0}'", f)).ToArray()));
+			stream.WriteText("\t.CompilerOutputPath = \"{0}\"\n", IntermediatePath);
 
-			if(!Action.bCanExecuteRemotely || !Action.bCanExecuteRemotelyWithSNDBS || ForceLocalCompileModules.Contains(Path.GetFileNameWithoutExtension(InputFile)))
+			if (!Action.bCanExecuteRemotely || !Action.bCanExecuteRemotelyWithSNDBS ||
+			    ForceLocalCompileModules.Intersect(InputFiles.Select(Path.GetFileNameWithoutExtension)).Any())
 			{
-				AddText(string.Format("\t.AllowDistribution = false\n"));
+				stream.WriteText("\t.AllowDistribution = false\n");
 			}
 
-			string OtherCompilerOptions = GetOptionValue(ParsedCompilerOptions, "OtherOptions", Action);
-			string CompilerOutputExtension = ".unset";
+			string CompilerOutputExtension;
 
-			if (ParsedCompilerOptions.ContainsKey("/Yc")) //Create PCH
+			if (TryGetValueForFlag(Action.CommandArguments, "/Yc", out var CreatePCHIncludeHeader)) //Create PCH
 			{
-				string PCHIncludeHeader = GetOptionValue(ParsedCompilerOptions, "/Yc", Action, ProblemIfNotFound: true);
-				string PCHOutputFile = GetOptionValue(ParsedCompilerOptions, "/Fp", Action, ProblemIfNotFound: true);
+				if (!TryGetValueForFlag(Action.CommandArguments, "/Fp", out var PCHOutputFile))
+				{
+					Console.WriteLine("We failed to find /Fp. Bailing.");
+					return;
+				}
 
-				AddText(string.Format("\t.CompilerOptions = '\"%1\" /Fo\"%2\" /Fp\"{0}\" /Yu\"{1}\" {2} '\n", PCHOutputFile, PCHIncludeHeader, OtherCompilerOptions));
+				stream.WriteText("\t.CompilerOptions = '{0}'\n", MergedCommandArguments.Replace("/Yc", "/Yu");
 
-				AddText(string.Format("\t.PCHOptions = '\"%1\" /Fp\"%2\" /Yc\"{0}\" {1} /Fo\"{2}\"'\n", PCHIncludeHeader, OtherCompilerOptions, OutputObjectFileName));
-				AddText(string.Format("\t.PCHInputFile = \"{0}\"\n", InputFile));
-				AddText(string.Format("\t.PCHOutputFile = \"{0}\"\n", PCHOutputFile));
+				stream.WriteText("\t.PCHOptions = '\"%1\" /Fp\"%2\" /Yc\"{0}\" {1} /Fo\"{2}\"'\n", CreatePCHIncludeHeader, OtherCompilerOptions, OutputObjectFileName);
+				stream.WriteText("\t.PCHInputFile = \"{0}\"\n", InputFiles.First());
+				stream.WriteText("\t.PCHOutputFile = \"{0}\"\n", PCHOutputFile);
 				CompilerOutputExtension = ".obj";
 			}
-			else if (ParsedCompilerOptions.ContainsKey("/Yu")) //Use PCH
+			else if (TryGetValueForFlag(Action.CommandArguments, "/Yu", out var PCHIncludeHeader)) //Use PCH
 			{
-				string PCHIncludeHeader = GetOptionValue(ParsedCompilerOptions, "/Yu", Action, ProblemIfNotFound: true);
-				string PCHOutputFile = GetOptionValue(ParsedCompilerOptions, "/Fp", Action, ProblemIfNotFound: true);
+				string PCHOutputFile;
+				if (!TryGetValueForFlag(Action.CommandArguments, "/Fp", out PCHOutputFile))
+				{
+					Console.WriteLine("We failed to find /Fp. Bailing.");
+					return;
+				}
+
 				string PCHToForceInclude = PCHOutputFile.Replace(".pch", "");
-				AddText(string.Format("\t.CompilerOptions = '\"%1\" /Fo\"%2\" /Fp\"{0}\" /Yu\"{1}\" /FI\"{2}\" {3} '\n", PCHOutputFile, PCHIncludeHeader, PCHToForceInclude, OtherCompilerOptions));
+				stream.WriteText("\t.CompilerOptions = '\"%1\" /Fo\"%2\" /Fp\"{0}\" /Yu\"{1}\" /FI\"{2}\" {3} '\n", PCHOutputFile, PCHIncludeHeader, PCHToForceInclude, OtherCompilerOptions);
+				CompilerOutputExtension = ".cpp.obj";
+			}
+			else if (CompilerName == "UE4ResourceCompiler")
+			{
+				stream.WriteText("\t.CompilerOptions = '{0}'\n", MergedCommandArguments);
+				CompilerOutputExtension = Path.GetExtension(InputFiles[0]) + ".res";
+			}
+			else if (IsMSVC())
+			{
+				stream.WriteText("\t.CompilerOptions = '{0}'\n", MergedCommandArguments);
 				CompilerOutputExtension = ".cpp.obj";
 			}
 			else
 			{
-				if (CompilerName == "UE4ResourceCompiler")
-				{
-					AddText(string.Format("\t.CompilerOptions = '{0} /fo\"%2\" \"%1\" '\n", OtherCompilerOptions));
-					CompilerOutputExtension = Path.GetExtension(InputFile) + ".res";
-				}
-				else
-				{
-					if (IsMSVC())
-					{
-						AddText(string.Format("\t.CompilerOptions = '{0} /Fo\"%2\" \"%1\" '\n", OtherCompilerOptions));
-						CompilerOutputExtension = ".cpp.obj";
-					}
-					else
-					{
-						AddText(string.Format("\t.CompilerOptions = '{0} -o \"%2\" \"%1\" '\n", OtherCompilerOptions));
-						CompilerOutputExtension = ".cpp.o";
-					}
-				}
+				stream.WriteText("\t.CompilerOptions = '{0}'\n", MergedCommandArguments);
+				CompilerOutputExtension = ".cpp.o";
 			}
 
-			AddText(string.Format("\t.CompilerOutputExtension = '{0}' \n", CompilerOutputExtension));
+			stream.WriteText("\t.CompilerOutputExtension = '{0}' \n", CompilerOutputExtension);
 
 			if (DependencyIndices.Count > 0)
 			{
-				List<string> DependencyNames = DependencyIndices.ConvertAll(x => string.Format("'Action_{0}'", x));
-				AddText(string.Format("\t.PreBuildDependencies = {{ {0} }}\n", string.Join(",", DependencyNames.ToArray())));
+				var DependencyNames = DependencyIndices.Select(x => string.Format("'Action_{0}'", x));
+				stream.WriteText("\t.PreBuildDependencies = {{ {0} }}\n", string.Join(",", DependencyNames.ToArray()));
 			}
 
-			AddText(string.Format("}}\n\n"));
+			stream.WriteText("}\n\n");
 		}
 
-		private void AddLinkAction(List<Action> Actions, int ActionIndex, List<int> DependencyIndices)
+		private void AddLinkAction(FileStream stream, List<Action> Actions, int ActionIndex,
+			List<int> DependencyIndices)
 		{
 			Action Action = Actions[ActionIndex];
-			string[] SpecialLinkerOptions = { "/OUT:", "@", "-o" };
-			var ParsedLinkerOptions = ParseCommandLineOptions(Action.CommandArguments, SpecialLinkerOptions, SaveResponseFile: true);
+			var  knownCompilerOptions = new [] {"/OUT:", "/PDB", "/IMPLIB", "/NODEFAULTLIB", "/LIBPATH" ,"-o"};
+
+			var MergedCommandArguments = GetCommandLineArguments(Action);
 
 			string OutputFile;
 
+			var isClangCrossCompiler =
+				Action.CommandPath.Contains("cmd.exe") && MergedCommandArguments.Contains("gnu-ar.exe");
+			if (isClangCrossCompiler)
+			{
+				// This is executed as a sub-shell (cmd.exe or /bin/sh), so the arguments need cleaning.
+				MergedCommandArguments = MergedCommandArguments.Replace("/c", string.Empty).Trim(' ');
+
+				// Remove first and last quote. Don't use Trim(), since there may be more leading and trailing quotes.
+				MergedCommandArguments = MergedCommandArguments.Substring(1, MergedCommandArguments.Length - 2);
+
+				// Strip the linker executable name.
+				var Index = MergedCommandArguments.IndexOf("\"", 1, StringComparison.Ordinal);
+				Action.CommandPath = MergedCommandArguments.Substring(1, Index - 1);
+				MergedCommandArguments = MergedCommandArguments.Substring(Index + 2);
+			}
+
+			string OtherCompilerOptions =
+				FilterArgumentsWithValues(MergedCommandArguments, knownCompilerOptions);
+			var InputFiles = GetLooseArguments(OtherCompilerOptions);
+
 			if (IsXBOnePDBUtil(Action))
 			{
-				OutputFile = ParsedLinkerOptions["OtherOptions"].Trim(' ').Trim('"');
+				OutputFile = InputFiles.First();
 			}
 			else if (IsMSVC())
 			{
-				OutputFile = GetOptionValue(ParsedLinkerOptions, "/OUT:", Action, ProblemIfNotFound: true);
+				if (!TryGetValueForFlag(MergedCommandArguments, "/OUT:", out OutputFile))
+				{
+
+				}
+			}
+			else if (isClangCrossCompiler)
+			{
+				OutputFile = InputFiles[0];
 			}
 			else //PS4
 			{
-				OutputFile = GetOptionValue(ParsedLinkerOptions, "-o", Action, ProblemIfNotFound: false);
-				if (string.IsNullOrEmpty(OutputFile))
+				if (!TryGetValueForFlag(MergedCommandArguments, "-o", out OutputFile))
 				{
-					OutputFile = GetOptionValue(ParsedLinkerOptions, "InputFile", Action, ProblemIfNotFound: true);
+					OutputFile = InputFiles.First();
 				}
 			}
 
@@ -774,26 +865,29 @@ namespace UnrealBuildTool
 				return;
 			}
 
-			string ResponseFilePath = GetOptionValue(ParsedLinkerOptions, "@", Action);
-			string OtherCompilerOptions = GetOptionValue(ParsedLinkerOptions, "OtherOptions", Action);
-
 			List<int> PrebuildDependencies = new List<int>();
+			var InputFilesAsString = string.Join(",\n\t\t", InputFiles.Select(f => string.Format("'{0}'", f)).ToArray());
+
+			stream.WriteText("; {0}\n", MergedCommandArguments);
 
 			if (IsXBOnePDBUtil(Action))
-			{
-				AddText(string.Format("Exec('Action_{0}')\n{{\n", ActionIndex));
-				AddText(string.Format("\t.ExecExecutable = '{0}'\n", Action.CommandPath));
-				AddText(string.Format("\t.ExecArguments = '{0}'\n", Action.CommandArguments));
-				AddText(string.Format("\t.ExecInput = {{ {0} }} \n", ParsedLinkerOptions["InputFile"]));
-				AddText(string.Format("\t.ExecOutput = '{0}' \n", OutputFile));
-				AddText(string.Format("\t.PreBuildDependencies = {{ {0} }} \n", ParsedLinkerOptions["InputFile"]));
-				AddText(string.Format("}}\n\n"));
+			{				
+				stream.WriteText("Exec('Action_{0}')\n{{\n", ActionIndex);
+				stream.WriteText("\t.ExecExecutable = '{0}'\n", Action.CommandPath);
+				stream.WriteText("\t.ExecArguments = '{0}'\n", Action.CommandArguments);
+				stream.WriteText("\t.ExecInput = {{ {0} }} \n", InputFiles.First());
+				stream.WriteText("\t.ExecOutput = '{0}' \n", OutputFile);
+				stream.WriteText("\t.PreBuildDependencies = {{ {0} }} \n", InputFiles.First());
+				stream.WriteText("}\n\n");
 			}
-			else if (Action.CommandPath.Contains("lib.exe") || Action.CommandPath.Contains("orbis-snarl"))
+			else if (Action.CommandPath.Contains("lib.exe") || Action.CommandPath.Contains("orbis-snarl") ||
+			         isClangCrossCompiler)
 			{
 				if (DependencyIndices.Count > 0)
 				{
-					for (int i = 0; i < DependencyIndices.Count; ++i) //Don't specify pch or resource files, they have the wrong name and the response file will have them anyways.
+					for (int i = 0;
+						i < DependencyIndices.Count;
+						++i) //Don't specify pch or resource files, they have the wrong name and the response file will have them anyways.
 					{
 						int depIndex = DependencyIndices[i];
 						foreach (FileItem item in Actions[depIndex].ProducedItems)
@@ -809,111 +903,107 @@ namespace UnrealBuildTool
 					}
 				}
 
-				AddText(string.Format("Library('Action_{0}')\n{{\n", ActionIndex));
-				AddText(string.Format("\t.Compiler = '{0}'\n", GetCompilerName()));
+				stream.WriteText("Library('Action_{0}')\n{{\n", ActionIndex);
+				stream.WriteText("\t.Compiler = '{0}'\n", GetCompilerName());
 				if (IsMSVC())
-					AddText(string.Format("\t.CompilerOptions = '\"%1\" /Fo\"%2\" /c'\n"));
+					stream.WriteText("\t.CompilerOptions = '\"%1\" /Fo\"%2\" /c'\n");
 				else
-					AddText(string.Format("\t.CompilerOptions = '\"%1\" -o \"%2\" -c'\n"));
-				AddText(string.Format("\t.CompilerOutputPath = \"{0}\"\n", Path.GetDirectoryName(OutputFile)));
-				AddText(string.Format("\t.Librarian = '{0}' \n", Action.CommandPath));
+					stream.WriteText("\t.CompilerOptions = '\"%1\" -o \"%2\" -c'\n");
+				stream.WriteText("\t.CompilerOutputPath = \"{0}\"\n", Path.GetDirectoryName(OutputFile));
 
-				if (!string.IsNullOrEmpty(ResponseFilePath))
+				stream.WriteText("\t.Librarian = '{0}' \n", Action.CommandPath);
+
+
+				if (IsMSVC())
 				{
-					if (IsMSVC())
-                        AddText(string.Format("\t.LibrarianOptions = ' /OUT:\"%2\" @\"{0}\" \"%1\"' \n", ResponseFilePath));
-					else
-						AddText(string.Format("\t.LibrarianOptions = '\"%2\" @\"%1\" {0}' \n", OtherCompilerOptions));
+					stream.WriteText("\t.LibrarianOptions = ' /OUT:\"%2\" \"%1\" {0}'\n", OtherCompilerOptions);
+				}
+				else if (isClangCrossCompiler)
+				{
+					stream.WriteText("\t.LibrarianOptions = 'rcs \"%2\" \"%1\" {0}'\n", OtherCompilerOptions);
 				}
 				else
 				{
-					if (IsMSVC())
-						AddText(string.Format("\t.LibrarianOptions = ' /OUT:\"%2\" {0} \"%1\"' \n", OtherCompilerOptions));
+					stream.WriteText("\t.LibrarianOptions = '\"%2\" @\"%1\" {0}'\n", OtherCompilerOptions);
 				}
+
 
 				if (DependencyIndices.Count > 0)
 				{
-					List<string> DependencyNames = DependencyIndices.ConvertAll(x => string.Format("'Action_{0}'", x));
+//					List<string> DependencyNames = DependencyIndices.ConvertAll(x => string.Format("'Action_{0}'", x));
+//
+//					if (!string.IsNullOrEmpty(ResponseFilePath))
+//						stream.WriteText("\t.LibrarianAdditionalInputs = {{ {0} }} \n",
+//							DependencyNames[0]); // Hack...Because FastBuild needs at least one Input file
+//					else if (IsMSVC())
+//						stream.WriteText("\t.LibrarianAdditionalInputs = {{ {0} }} \n",
+//							string.Join(",", DependencyNames.ToArray()));
 
-                    if (!string.IsNullOrEmpty(ResponseFilePath))
-                        AddText(string.Format("\t.LibrarianAdditionalInputs = {{ {0} }} \n", DependencyNames[0])); // Hack...Because FastBuild needs at least one Input file
-                    else if (IsMSVC())
-                        AddText(string.Format("\t.LibrarianAdditionalInputs = {{ {0} }} \n", string.Join(",", DependencyNames.ToArray())));
-
-                    PrebuildDependencies.AddRange(DependencyIndices);
+					PrebuildDependencies.AddRange(DependencyIndices);
 				}
 				else
-				{
-					AddText(string.Format("\t.LibrarianAdditionalInputs = {{ '{0}' }} \n", GetOptionValue(ParsedLinkerOptions, "InputFile", Action, ProblemIfNotFound: true)));
+				{					
+					stream.WriteText("\t.LibrarianAdditionalInputs = {{ {0} }} \n", InputFilesAsString);
 				}
 
 				if (PrebuildDependencies.Count > 0)
 				{
-					List<string> PrebuildDependencyNames = PrebuildDependencies.ConvertAll(x => string.Format("'Action_{0}'", x));
-					AddText(string.Format("\t.PreBuildDependencies = {{ {0} }} \n", string.Join(",", PrebuildDependencyNames.ToArray())));
+					List<string> PrebuildDependencyNames =
+						PrebuildDependencies.ConvertAll(x => string.Format("'Action_{0}'", x));
+					stream.WriteText("\t.PreBuildDependencies = {{ {0} }} \n",
+						string.Join(",", PrebuildDependencyNames.ToArray()));
 				}
 
-				AddText(string.Format("\t.LibrarianOutput = '{0}' \n", OutputFile));
-				AddText(string.Format("}}\n\n"));
+				stream.WriteText("\t.LibrarianOutput = '{0}' \n", OutputFile);
+				stream.WriteText("}\n\n");
 			}
-			else if (Action.CommandPath.Contains("link.exe") || Action.CommandPath.Contains("orbis-clang"))
+			else if (Action.CommandPath.Contains("link.exe") || Action.CommandPath.Contains("orbis-clang") ||
+			         Action.CommandPath.Contains("clang++"))
 			{
-				if (DependencyIndices.Count > 0) //Insert a dummy node to make sure all of the dependencies are finished.
-												 //If FASTBuild supports PreBuildDependencies on the Executable action we can remove this.
-				{
-					string dummyText = string.IsNullOrEmpty(ResponseFilePath) ? GetOptionValue(ParsedLinkerOptions, "InputFile", Action) : ResponseFilePath;
-					File.SetLastAccessTimeUtc(dummyText, DateTime.UtcNow);
-					AddText(string.Format("Copy('Action_{0}_dummy')\n{{ \n", ActionIndex));
-					AddText(string.Format("\t.Source = '{0}' \n", dummyText));
-					AddText(string.Format("\t.Dest = '{0}' \n", dummyText + ".dummy"));
-					List<string> DependencyNames = DependencyIndices.ConvertAll(x => string.Format("\t\t'Action_{0}', ;{1}", x, Actions[x].StatusDescription));
-					AddText(string.Format("\t.PreBuildDependencies = {{\n{0}\n\t}} \n", string.Join("\n", DependencyNames.ToArray())));
-					AddText(string.Format("}}\n\n"));
-				}
+				stream.WriteText("Executable('Action_{0}')\n{{ \n", ActionIndex);
+				stream.WriteText("\t.Linker = '{0}' \n", Action.CommandPath);
 
-				AddText(string.Format("Executable('Action_{0}')\n{{ \n", ActionIndex));
-				AddText(string.Format("\t.Linker = '{0}' \n", Action.CommandPath));
 				if (DependencyIndices.Count == 0)
 				{
-					AddText(string.Format("\t.Libraries = {{ '{0}' }} \n", ResponseFilePath));
-					if (IsMSVC())
-					{
-						if(BuildType == FBBuildType.XBOne)
-						{
-							AddText(string.Format("\t.LinkerOptions = '/TLBOUT:\"%1\" /Out:\"%2\" @\"{0}\" {1} ' \n", ResponseFilePath, OtherCompilerOptions)); // The TLBOUT is a huge bodge to consume the %1.
-						}
-						else
-						{
-							AddText(string.Format("\t.LinkerOptions = '/TLBOUT:\"%1\" /Out:\"%2\" @\"{0}\" ' \n", ResponseFilePath)); // The TLBOUT is a huge bodge to consume the %1.
-						}
-					}
-					else
-						AddText(string.Format("\t.LinkerOptions = '-o \"%2\" @\"{0}\" {1} -MQ \"%1\"' \n", ResponseFilePath, OtherCompilerOptions)); // The MQ is a huge bodge to consume the %1.
+					// Just use the response file itself to stop FASTBuild from throwing an error.
+					stream.WriteText("\t.Libraries = {{ '{0}' }} \n", "ResponseFilePath");
 				}
 				else
 				{
-					AddText(string.Format("\t.Libraries = 'Action_{0}_dummy' \n", ActionIndex));
-					if (IsMSVC())
-					{
-						if(BuildType == FBBuildType.XBOne)
-						{
-							AddText(string.Format("\t.LinkerOptions = '/TLBOUT:\"%1\" /Out:\"%2\" @\"{0}\" {1} ' \n", ResponseFilePath, OtherCompilerOptions)); // The TLBOUT is a huge bodge to consume the %1.
-						}
-						else
-						{
-							AddText(string.Format("\t.LinkerOptions = '/TLBOUT:\"%1\" /Out:\"%2\" @\"{0}\" ' \n", ResponseFilePath)); // The TLBOUT is a huge bodge to consume the %1.
-						}
-					}
-					else
-						AddText(string.Format("\t.LinkerOptions = '-o \"%2\" @\"{0}\" {1} -MQ \"%1\"' \n", ResponseFilePath, OtherCompilerOptions)); // The MQ is a huge bodge to consume the %1.
+					stream.WriteText("\t.Libraries = {{ {0} }} \n", InputFilesAsString);
+
+					List<string> DependencyNames = DependencyIndices.ConvertAll(x =>
+						string.Format("\t\t'Action_{0}', ; {1}", x, Actions[x].StatusDescription));
+					stream.WriteText("\t.PreBuildDependencies = {{\n{0}\n\t}} \n",
+						string.Join("\n", DependencyNames.ToArray()));
 				}
 
-				AddText(string.Format("\t.LinkerOutput = '{0}' \n", OutputFile));
-				AddText(string.Format("}}\n\n"));
+				if (IsMSVC())
+				{
+					// The TLBOUT is a huge bodge to consume the %1.
+					if (BuildType == FBBuildType.XBOne)
+					{
+						stream.WriteText("\t.LinkerOptions = '/TLBOUT:\"%1\" /Out:\"%2\" {0} ' \n", OtherCompilerOptions);
+					}
+					else
+					{
+						stream.WriteText("\t.LinkerOptions = '/TLBOUT:\"%1\" /Out:\"%2\" ' \n");
+					}
+				}
+				else
+				{
+					// The MQ is a huge bodge to consume the %1.
+					stream.WriteText("\t.LinkerOptions = '-o \"%2\" {0} -MQ \"%1\"' \n", OtherCompilerOptions);
+				}
+
+				stream.WriteText("\t.LinkerOutput = '{0}' \n", OutputFile);
+				stream.WriteText("}\n\n");
+			}
+			else
+			{
+				throw new Exception("Error: Unknown toolchain " + Action.CommandPath);
 			}
 		}
-
-		private FileStream bffOutputFileStream = null;
 
 		private bool CreateBffFile(List<Action> InActions, string BffFilePath)
 		{
@@ -921,45 +1011,54 @@ namespace UnrealBuildTool
 
 			try
 			{
-				bffOutputFileStream = new FileStream(BffFilePath, FileMode.Create, FileAccess.Write);
+				using (var stream = new FileStream(BffFilePath, FileMode.Create, FileAccess.Write))
 
-				WriteEnvironmentSetup(); //Compiler, environment variables and base paths
-
-				for (int ActionIndex = 0; ActionIndex < Actions.Count; ActionIndex++)
 				{
-					Action Action = Actions[ActionIndex];
+					WriteEnvironmentSetup(stream); //Compiler, environment variables and base paths
 
-					// Resolve dependencies
-					List<int> DependencyIndices = new List<int>();
-					foreach (FileItem Item in Action.PrerequisiteItems)
+					for (int ActionIndex = 0; ActionIndex < Actions.Count; ActionIndex++)
 					{
-						if (Item.ProducingAction != null)
+						Action Action = Actions[ActionIndex];
+
+						// Resolve dependencies
+						List<int> DependencyIndices = new List<int>();
+						foreach (FileItem Item in Action.PrerequisiteItems)
 						{
-							int ProducingActionIndex = Actions.IndexOf(Item.ProducingAction);
-							if (ProducingActionIndex >= 0)
+							if (Item.ProducingAction != null)
 							{
-								DependencyIndices.Add(ProducingActionIndex);
+								int ProducingActionIndex = Actions.IndexOf(Item.ProducingAction);
+								if (ProducingActionIndex >= 0)
+								{
+									DependencyIndices.Add(ProducingActionIndex);
+								}
 							}
+						}
+
+						switch (Action.ActionType)
+						{
+							case ActionType.Compile:
+								AddCompileAction(stream, Action, ActionIndex, DependencyIndices);
+								break;
+							case ActionType.Link:
+								AddLinkAction(stream, Actions, ActionIndex, DependencyIndices);
+								break;
+							default:
+								Console.WriteLine("Fastbuild is ignoring an unsupported action: " +
+								                  Action.ActionType);
+								break;
 						}
 					}
 
-					switch (Action.ActionType)
+					stream.WriteText("Alias( 'all' ) \n{\n");
+					stream.WriteText("\t.Targets = { \n");
+					for (int ActionIndex = 0; ActionIndex < Actions.Count; ActionIndex++)
 					{
-						case ActionType.Compile: AddCompileAction(Action, ActionIndex, DependencyIndices); break;
-						case ActionType.Link: AddLinkAction(Actions, ActionIndex, DependencyIndices); break;
-						default: Console.WriteLine("Fastbuild is ignoring an unsupported action: " + Action.ActionType.ToString()); break;
+						stream.WriteText("\t\t'Action_{0}'{1}", ActionIndex,
+							ActionIndex < (Actions.Count - 1) ? ",\n" : "\n\t}\n");
 					}
-				}
 
-				AddText("Alias( 'all' ) \n{\n");
-				AddText("\t.Targets = { \n");
-				for (int ActionIndex = 0; ActionIndex < Actions.Count; ActionIndex++)
-				{
-					AddText(string.Format("\t\t'Action_{0}'{1}", ActionIndex, ActionIndex < (Actions.Count - 1) ? ",\n" : "\n\t}\n"));
+					stream.WriteText("}\n");
 				}
-				AddText("}\n");
-
-				bffOutputFileStream.Close();
 			}
 			catch (Exception e)
 			{
@@ -995,44 +1094,311 @@ namespace UnrealBuildTool
 			//Interesting flags for FASTBuild: -nostoponerror, -verbose, -monitor (if FASTBuild Monitor Visual Studio Extension is installed!)
 			// Yassine: The -clean is to bypass the FastBuild internal dependencies checks (cached in the fdb) as it could create some conflicts with UBT.
 			//			Basically we want FB to stupidly compile what UBT tells it to.
-			string FBCommandLine = string.Format("-monitor -summary {0} {1} -ide -clean -config {2}", distArgument, cacheArgument, BffFilePath);
+			string FBCommandLine = string.Format("-monitor -summary {0} {1} -ide -clean -showcmds -config {2}",
+				distArgument, cacheArgument, BffFilePath);
 
-			ProcessStartInfo FBStartInfo = new ProcessStartInfo(string.IsNullOrEmpty(FBuildExePathOverride) ? "fbuild" : FBuildExePathOverride, FBCommandLine);
+			ProcessStartInfo FBStartInfo =
+				new ProcessStartInfo(string.IsNullOrEmpty(FBuildExePathOverride) ? "fbuild" : FBuildExePathOverride,
+					FBCommandLine);
 
 			FBStartInfo.UseShellExecute = false;
-			FBStartInfo.WorkingDirectory = Path.Combine(UnrealBuildTool.EngineDirectory.MakeRelativeTo(DirectoryReference.GetCurrentDirectory()), "Source");
+			FBStartInfo.WorkingDirectory =
+				Path.Combine(UnrealBuildTool.EngineDirectory.MakeRelativeTo(DirectoryReference.GetCurrentDirectory()),
+					"Source");
 
 			try
 			{
-				Process FBProcess = new Process();
-				FBProcess.StartInfo = FBStartInfo;
-
-				FBStartInfo.RedirectStandardError = true;
-				FBStartInfo.RedirectStandardOutput = true;
-				FBProcess.EnableRaisingEvents = true;
-
-				DataReceivedEventHandler OutputEventHandler = (Sender, Args) =>
+				using (Process FBProcess = new Process())
 				{
-					if (Args.Data != null)
-						Console.WriteLine(Args.Data);
-				};
+					FBProcess.StartInfo = FBStartInfo;
 
-				FBProcess.OutputDataReceived += OutputEventHandler;
-				FBProcess.ErrorDataReceived += OutputEventHandler;
+					FBStartInfo.RedirectStandardError = true;
+					FBStartInfo.RedirectStandardOutput = true;
+					FBProcess.EnableRaisingEvents = true;
 
-				FBProcess.Start();
+					DataReceivedEventHandler OutputEventHandler = (Sender, Args) =>
+					{
+						if (Args.Data != null)
+							Console.WriteLine(Args.Data);
+					};
 
-				FBProcess.BeginOutputReadLine();
-				FBProcess.BeginErrorReadLine();
+					FBProcess.OutputDataReceived += OutputEventHandler;
+					FBProcess.ErrorDataReceived += OutputEventHandler;
 
-				FBProcess.WaitForExit();
-				return FBProcess.ExitCode == 0;
+					FBProcess.Start();
+
+					FBProcess.BeginOutputReadLine();
+					FBProcess.BeginErrorReadLine();
+
+					FBProcess.WaitForExit();
+
+					return FBProcess.ExitCode == 0;
+				}
 			}
 			catch (Exception e)
 			{
 				Console.WriteLine("Exception launching fbuild process. Is it in your path?" + e.ToString());
 				return false;
 			}
+		}
+
+		private static string GetNextToken(string str, ref int startIndex)
+		{
+			// Skip leading whitespace
+			while (startIndex < str.Length && char.IsWhiteSpace(str[startIndex]))
+			{
+				startIndex++;
+			}
+
+			if (startIndex >= str.Length)
+			{
+				startIndex = -1;
+				return null;
+			}
+
+			var tokenBegin = startIndex;
+
+			if (str[startIndex] == '"')
+			{
+				// Move past the ".
+				startIndex++;
+
+				while (startIndex < str.Length)
+				{
+					switch (str[startIndex])
+					{
+						// Terminating quote for this token.
+						case '"':
+							// Move to the next character for the next call.
+							startIndex++;
+							return str.Substring(tokenBegin, startIndex - tokenBegin);
+					}
+
+					startIndex++;
+				}
+
+				Console.WriteLine("ERROR: Unterminated string at {0}", str.Substring(tokenBegin));
+				startIndex = -1;
+				return null;
+			}
+
+			while (startIndex < str.Length)
+			{
+				var c = str[startIndex];
+				if (char.IsWhiteSpace(c))
+				{
+					// We've reached the end of a token run.
+					break;
+				}
+
+				if ((c == '"' || c == '\'') && str[tokenBegin] != '@')
+				{
+					// Response files are a special case
+					break;
+				}
+
+				startIndex++;
+			}
+
+			return str.Substring(tokenBegin, startIndex - tokenBegin);
+		}
+
+		private static bool TryGetValueForFlag(string str, string flagName, out string value,
+			StringComparison comparison = StringComparison.InvariantCulture)
+		{
+			value = null;
+
+			var startIndex = 0;
+			while (startIndex >= 0)
+			{
+				var token = GetNextToken(str, ref startIndex);
+				if (token == null)
+				{
+					return false;
+				}
+
+				if (token.StartsWith(flagName, comparison))
+				{
+					break;
+				}
+			}
+
+			value = GetNextToken(str, ref startIndex);
+			return true;
+		}
+
+		private static string MatchToken(string str, Func<string, bool> predicate)
+		{
+			var startIndex = 0;
+			while (startIndex >= 0)
+			{
+				var token = GetNextToken(str, ref startIndex);
+				if (token == null)
+				{
+					return null;
+				}
+
+				if (predicate(token))
+				{
+					return token;
+				}
+			}
+
+			return null;
+		}
+
+		private static List<string> GetLooseArguments(string str)
+		{
+			var startIndex = 0;
+			var results = new List<string>();
+
+			while (startIndex >= 0)
+			{
+				var token = GetNextToken(str, ref startIndex);
+				if (token == null)
+				{
+					break;
+				}
+
+				if (IsFlag(token))
+				{
+					// Peek ahead to see if we need to skip the value.
+					var testToken = startIndex;
+					token = GetNextToken(str, ref testToken);
+					if (token != null && !IsFlag(token))
+					{
+						startIndex = testToken;
+					}
+
+					
+					continue;
+				}
+
+				results.Add(token);
+			}
+
+			return results;
+		}
+
+		private static bool IsFlag(string token)
+		{
+			return token.StartsWith("-") || token.StartsWith("/");
+		}
+
+		private static string FilterArgumentsWithValues(string str, params string[] toExclude)
+		{
+			var results = new List<string>();
+
+			var startIndex = 0;
+			while (startIndex >= 0)
+			{
+				var token = GetNextToken(str, ref startIndex);
+				if (token == null)
+				{
+					break;
+				}
+
+				var keepToken = true;
+				foreach (var exclude in toExclude)
+				{
+					if (token.StartsWith(exclude))
+					{
+						token = GetNextToken(str, ref startIndex);
+						// For example "/Fp\"PathToFile\"".
+						keepToken = false;
+						break;
+					}
+				}
+
+				if (keepToken)
+				{
+					results.Add(token);
+				}
+			}
+
+			return string.Join(" ", results.ToArray());
+		}
+
+		private static bool TryGetResponseFile(string str, out string responseFileName, out string responseFileContent)
+		{
+			responseFileContent = null;
+
+			responseFileName = MatchToken(str, t => t.StartsWith("@"));
+			if (responseFileName == null)
+			{
+				return false;
+			}
+
+			// Skip leading @, trim quotes.
+
+			responseFileName = responseFileName.Substring(1).Trim('"');
+			responseFileContent = File.ReadAllText(responseFileName);
+			return true;
+		}
+
+		private static string RewriteCompilerArguments(string CompilerArguments, out string OutputFile, out List<string> InputFiles)
+		{
+			OutputFile = null;
+
+			InputFiles = new List<string>();
+			var Retokenized = new List<string>();
+			bool AddedInputFileMarker = false;
+
+			var parseIndex = 0;
+			var token = "";
+			while ((token = GetNextToken(CompilerArguments, ref parseIndex)) != null)
+			{
+				if (CompilerArguments.Contains(token))
+				{
+					Retokenized.Add(token);
+					// Skip value;
+					var value = GetNextToken(CompilerArguments, ref parseIndex);
+					if (value == null)
+					{
+						throw new Exception($"Expected value after {token}");
+					}
+
+					if (token == "/Fo" || token == "/fo" || token == "-o")
+					{
+						Retokenized.Add("\"%2\"");
+						OutputFile = value;
+					}
+					else
+					{
+						Retokenized.Add(value);
+					}                   
+				}
+				else if (IsFlag(token))
+				{
+					Retokenized.Add(token);
+				}
+				else
+				{
+					InputFiles.Add(token);
+					if (!AddedInputFileMarker)
+					{
+						AddedInputFileMarker = true;
+						Retokenized.Add("\"%1\"");
+					}                    
+				}
+			}
+
+			return string.Join(" ", Retokenized.ToArray());
+		}
+	}
+
+	static class FileStreamExtension
+	{
+		public static void WriteText(this FileStream stream, string StringToWrite)
+		{
+			var Bytes = new System.Text.UTF8Encoding(true).GetBytes(StringToWrite);
+			stream.Write(Bytes, 0, Bytes.Length);
+		}
+
+		public static void WriteText(this FileStream stream, string StringToWrite, params object[] args)
+		{
+			var Bytes = new System.Text.UTF8Encoding(true).GetBytes(string.Format(StringToWrite, args));
+			stream.Write(Bytes, 0, Bytes.Length);
 		}
 	}
 }
