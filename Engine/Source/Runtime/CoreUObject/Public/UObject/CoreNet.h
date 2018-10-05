@@ -387,6 +387,7 @@ struct FNetDeltaSerializeInfo
 		bOutHasMoreUnmapped			= false;
 		bGuidListsChanged			= false;
 		bIsWritingOnClient			= false;
+		bIsSpatialType				= false;		// IMPROBABLE-CHANGE: Add spatial flag
 		Object						= nullptr;
 		GatherGuidReferences		= nullptr;
 		TrackedGuidMemoryBytes		= nullptr;
@@ -423,8 +424,21 @@ struct FNetDeltaSerializeInfo
 
 	// Debugging variables
 	FString							DebugName;
+	bool							bIsSpatialType;		// IMPROBABLE-CHANGE: Add spatial flag
 };
 
+// IMPROBABLE-BEGIN: Add structure to work with SpatialFastArrayDeltaSerialize
+struct FSpatialNetDeltaSerializeInfo : FNetDeltaSerializeInfo
+{
+	FSpatialNetDeltaSerializeInfo()
+	{
+		bIsSpatialType = true;
+	}
+
+	UArrayProperty*	ArrayProperty;
+	FScriptArray*	NewArray;
+};
+// IMPROBABLE-END
 
 /**
  * Checksum macros for verifying archives stay in sync

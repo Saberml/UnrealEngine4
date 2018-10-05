@@ -418,6 +418,11 @@ struct FFastArraySerializer
 	template< typename Type, typename SerializerType >
 	static bool FastArrayDeltaSerialize( TArray<Type> &Items, FNetDeltaSerializeInfo& Parms, SerializerType& ArraySerializer );
 
+	// IMPROBABLE-BEGIN: Add spatial specific serialize to work with non-delta serialization
+	template< typename Type, typename SerializerType >
+	static bool SpatialFastArrayDeltaSerialize(TArray<Type> &Items, FNetDeltaSerializeInfo& Parms, SerializerType& ArraySerializer);
+	// IMPROBABLE-END
+
 	/**
 	 * Called before removing elements and after the elements themselves are notified.  The indices are valid for this function call only!
 	 *
@@ -473,6 +478,13 @@ struct FFastArraySerializer_FastArrayDeltaSerialize_FIdxIDPair
 template< typename Type, typename SerializerType >
 bool FFastArraySerializer::FastArrayDeltaSerialize( TArray<Type> &Items, FNetDeltaSerializeInfo& Parms, SerializerType& ArraySerializer )
 {
+	// IMPROBABLE-BEGIN: Add spatial specific serialize to work with non-delta serialization
+	if (Parms.bIsSpatialType)
+	{
+		return FFastArraySerializer::SpatialFastArrayDeltaSerialize<Type, SerializerType>(Items, Parms, ArraySerializer);
+	}
+	// IMPROBABLE-END
+
 	SCOPE_CYCLE_COUNTER(STAT_NetSerializeFastArray);
 	class UScriptStruct* InnerStruct = Type::StaticStruct();
 
@@ -1102,7 +1114,67 @@ bool FFastArraySerializer::FastArrayDeltaSerialize( TArray<Type> &Items, FNetDel
 	return true;
 }
 
+// IMPROBABLE-BEGIN: Add spatial specific serialize to work with non-delta serialization
+template< typename Type, typename SerializerType >
+bool FFastArraySerializer::SpatialFastArrayDeltaSerialize(TArray<Type>& Items, FNetDeltaSerializeInfo& Parms, SerializerType& ArraySerializer)
+{
+	FSpatialNetDeltaSerializeInfo& SpatialParms = static_cast<FSpatialNetDeltaSerializeInfo&>(Parms);
+	TArray<Type>& NewItems = *reinterpret_cast<TArray<Type>*>(SpatialParms.NewArray);
 
+	int32 PreRepCount = Items.Num();
+	int32 PostRepCount = NewItems.Num();
+
+	TArray<int32> DeletedItems;
+	TArray<int32> AddedItems;
+	TArray<bool> ItemPreviouslyExisted;	// flag into new items to tag if they previously existed
+	ItemPreviouslyExisted.AddDefaulted(PostRepCount);
+
+	for (int32 Pre = 0; Pre < PreRepCount; ++Pre)
+	{
+		int32 Post = 0;
+		for (; Post < PostRepCount; ++Post)
+		{
+			if (!ItemPreviouslyExisted[Post] && SpatialParms.ArrayProperty->Inner->Identical(&Items[Pre], &NewItems[Post]))
+			{
+				ItemPreviouslyExisted[Post] = true;
+				break;
+			}
+		}
+		if (Post == PostRepCount)
+		{
+			// item deleted
+			DeletedItems.Add(Pre);
+		}
+	}
+	for (int32 Post = 0; Post < PostRepCount; ++Post)
+	{
+		if (!ItemPreviouslyExisted[Post])
+		{
+			// item added
+			AddedItems.Add(Items.Num());
+			Items.Add(NewItems[Post]);
+		}
+	}
+
+	DeletedItems.Sort();
+	for (auto DeletedIndex : DeletedItems)
+	{
+		Items[DeletedIndex].PreReplicatedRemove(ArraySerializer);
+	}
+
+	for (auto AddedIndex : AddedItems)
+	{
+		Items[AddedIndex].PostReplicatedAdd(ArraySerializer);
+	}
+
+	for (int DeleteIndex = (DeletedItems.Num()-1); DeleteIndex >= 0; --DeleteIndex)
+	{
+		Items.RemoveAtSwap(DeleteIndex, 1, false);
+	}
+
+	return true;
+}
+// IMPROBABLE-END
 
 
 /**
