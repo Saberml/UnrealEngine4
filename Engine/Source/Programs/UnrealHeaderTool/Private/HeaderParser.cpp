@@ -4811,7 +4811,8 @@ UProperty* FHeaderParser::GetVarNameAndDim
 		else if (VarProperty.IsObject() && VariableCategory == EVariableCategory::Member 
 			&& !(VarProperty.PropertyFlags & CPF_RepSkip) && VarProperty.Type != CPT_Interface)
 		{
-			//
+			// Due to optimisations within Unreals material system we have to ignore the generation of
+			// FUnrealObjectRefs for the following types.
 			if (Scope->GetName() != TEXT("ExpressionInput")
 				&& Scope->GetName() != TEXT("MaterialInput")
 				&& Scope->GetName() != TEXT("MaterialAttributesInput")
@@ -4820,6 +4821,9 @@ UProperty* FHeaderParser::GetVarNameAndDim
 				&& Scope->GetName() != TEXT("ScalarMaterialInput")
 				&& Scope->GetName() != TEXT("MemberReference"))
 			{
+				// Create a UProperty for the generated _SpatialOSContext variable.
+				// The creation parameters used below were deduced by copying the values
+				// from an existing UProperty that referenced an FUnrealObjectRef.
 				const FString VarName(VarProperty.Identifier);
 
 				FPropertyBase ObjRefProp(EPropertyType::CPT_Struct);
@@ -4838,7 +4842,7 @@ UProperty* FHeaderParser::GetVarNameAndDim
 				ObjRefProp.PointerType = EPointerType::None;
 				ObjRefProp.IntType = EIntType::None;
 
-				const FName ObjRefPropertyName = *(PropertyName.ToString().Append(FString(TEXT("_Context"))));
+				const FName ObjRefPropertyName = *(PropertyName.ToString().Append(FString(TEXT("_SpatialOSContext"))));
 				NewObjectRefProperty = CreateVariableProperty(ObjRefProp, Scope, ObjRefPropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
 			}
 		}
