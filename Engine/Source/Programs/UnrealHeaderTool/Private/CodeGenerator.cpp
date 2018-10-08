@@ -2594,6 +2594,52 @@ static FString PrivatePropertiesOffsetGetters(const UStruct* Struct, const FStri
 	return Result;
 }
 
+// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
+FString GenerateSpatialOSContextMacro(const UStruct* Struct)
+{
+	// This function iterates over each property in Struct that is a UObject and generates
+	// A FUnrealObjectRef for the property in the <ClassName>_IMPROBABLE_OBJECT_REFS macro within the
+	// <ClassName>.generated.h file.
+	FUHTStringBuilder Result;
+
+	for (const UProperty* Property : TFieldRange<UProperty>(Struct, EFieldIteratorFlags::ExcludeSuper))
+	{
+		if (!(Property->GetPropertyFlags() & CPF_RepSkip))
+		{
+			if (Property->IsA<UArrayProperty>())
+			{
+				// Add an array of FUnrealObjectRef's mapping each entry in the array to an FUnrealObjectRef.
+				// TODO: Implement full support for arrays. (UNR-633)
+				const UArrayProperty* ArrayProperty = Cast<const UArrayProperty>(Property);
+				const UProperty* InnerProperty = ArrayProperty->Inner;
+
+				if (InnerProperty->IsA<UObjectPropertyBase>())
+				{
+					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
+					Result.Logf(TEXT("\tTArray<FUnrealObjectRef> %s_SpatialOSContext;") LINE_TERMINATOR, *Property->GetName());
+				}
+			}
+			else if (Property->IsA<UObjectPropertyBase>())
+			{
+				if (Property->ArrayDim > 1)
+				{
+					// Add an array of FUnrealObjectRef's mapping each entry in the array to an FUnrealObjectRef.
+					// TODO: Implement full support for arrays. (UNR-633)
+					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
+					Result.Logf(TEXT("\tTArray<FUnrealObjectRef> %s_SpatialOSContext;") LINE_TERMINATOR, *Property->GetName());
+				}
+				else
+				{
+					Result.Logf(TEXT("\tUPROPERTY()") LINE_TERMINATOR);
+					Result.Logf(TEXT("\tFUnrealObjectRef %s_SpatialOSContext;") LINE_TERMINATOR, *Property->GetName());
+				}
+			}
+		}
+	}
+	return Result;
+}
+// IMPROBABLE-END
+
 void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 	FOutputDevice&           OutGeneratedHeaderText,
 	FOutputDevice&           OutCpp,
@@ -2680,6 +2726,9 @@ void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 	}
 
 	FString PPOMacroName;
+	// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
+	FString ObjectRefsMacroName;
+	// IMPROBABLE-END
 
 	// Replication, add in the declaration for GetLifetimeReplicatedProps() automatically if there are any net flagged properties
 	bool bNeedsRep = false;
@@ -2919,6 +2968,14 @@ void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 				PPOMacroName = FString::Printf(TEXT("\t%s\r\n"), *PPOMacroNameRaw);
 				WriteMacro(OutGeneratedHeaderText, PPOMacroNameRaw, PrivatePropertiesOffsets);
 			}
+			// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
+			{
+				const FString ObjectRefs = GenerateSpatialOSContextMacro(Class);
+				const FString ObjectRefsMacroNameRaw = SourceFile.GetGeneratedMacroName(ClassData, TEXT("_IMPROBABLE_OBJECT_REFS"));
+				ObjectRefsMacroName = FString::Printf(TEXT("\t%s\r\n"), *ObjectRefsMacroNameRaw);
+				WriteMacro(OutGeneratedHeaderText, ObjectRefsMacroNameRaw, ObjectRefs);
+			}
+			// IMPROBABLE-END
 		}
 	}
 
@@ -2942,10 +2999,16 @@ void FNativeClassHeaderGenerator::ExportClassFromSourceFileInner(
 		auto GeneratedBodyLine = bIsIInterface ? ClassData->GetInterfaceGeneratedBodyLine() : ClassData->GetGeneratedBodyLine();
 		auto LegacyGeneratedBody = FString(bIsIInterface ? TEXT("") : PPOMacroName)
 			+ ClassMacroCalls
-			+ (bIsIInterface ? TEXT("") : StandardUObjectConstructorsMacroCall);
+			// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
+			+ (bIsIInterface ? TEXT("") : StandardUObjectConstructorsMacroCall)
+			+ (bIsIInterface ? TEXT("") : ObjectRefsMacroName);
+			// IMPROBABLE-END
 		auto GeneratedBody = FString(bIsIInterface ? TEXT("") : PPOMacroName)
 			+ ClassNoPureDeclsMacroCalls
-			+ (bIsIInterface ? TEXT("") : EnhancedUObjectConstructorsMacroCall);
+			// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
+			+ (bIsIInterface ? TEXT("") : EnhancedUObjectConstructorsMacroCall)
+			+ (bIsIInterface ? TEXT("") : ObjectRefsMacroName);
+			// IMPROBABLE-END
 
 		auto WrappedLegacyGeneratedBody = DeprecationWarning + DeprecationPushString + Public + LegacyGeneratedBody + Public + DeprecationPopString;
 		auto WrappedGeneratedBody = FString(DeprecationPushString) + Public + GeneratedBody + GetPreservedAccessSpecifierString(Class) + DeprecationPopString;
@@ -3250,7 +3313,10 @@ void FNativeClassHeaderGenerator::ExportGeneratedStructBodyMacros(FOutputDevice&
 		const FString PrivatePropertiesOffset = PrivatePropertiesOffsetGetters(Struct, StructNameCPP);
 		const FString SuperTypedef = BaseStruct ? FString::Printf(TEXT("\ttypedef %s Super;\r\n"), NameLookupCPP.GetNameCPP(BaseStruct)) : FString();
 
-		const FString CombinedLine = FriendLine + StaticClassLine + PrivatePropertiesOffset + SuperTypedef;
+		// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
+		const FString ObjectRefs = GenerateSpatialOSContextMacro(Struct);
+		const FString CombinedLine = FriendLine + StaticClassLine + PrivatePropertiesOffset + SuperTypedef + ObjectRefs;
+		// IMPROBABLE-END
 		const FString MacroName = SourceFile.GetGeneratedBodyMacroName(Struct->StructMacroDeclaredLineNumber);
 
 		const FString Macroized = Macroize(*MacroName, *CombinedLine);
@@ -5013,6 +5079,9 @@ FNativeClassHeaderGenerator::FNativeClassHeaderGenerator(
 			TEXT("#error \"%s.generated.h already included, missing '#pragma once' in %s.h\"")	LINE_TERMINATOR
 			TEXT("#endif")																		LINE_TERMINATOR
 			TEXT("#define %s")																	LINE_TERMINATOR
+			// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
+			TEXT("#include \"improbable/UnrealObjectRef.h\"")			LINE_TERMINATOR
+			// IMPROBABLE-END
 			LINE_TERMINATOR,
 			*SourceFile->GetFileDefineName(), *SourceFile->GetStrippedFilename(), *SourceFile->GetStrippedFilename(), *SourceFile->GetFileDefineName());
 
