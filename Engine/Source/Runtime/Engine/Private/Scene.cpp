@@ -233,7 +233,9 @@ static void VerifyPostProcessingProperties(
 		{
 			check(!NewPropertySet.Contains(NewPropertyName));
 		}
-		else
+		// IMPROBABLE-BEGIN
+		else if (!(Property->GetNameCPP().EndsWith(TEXT("_Context"))))
+		// IMPROBABLE-END
 		{
 			check(Property->SameType(NewPropertySet.FindChecked(NewPropertyName)));
 		}
