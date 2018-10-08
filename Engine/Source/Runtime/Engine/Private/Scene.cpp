@@ -233,7 +233,7 @@ static void VerifyPostProcessingProperties(
 		{
 			check(!NewPropertySet.Contains(NewPropertyName));
 		}
-		// IMPROBABLE-BEGIN
+		// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
 		else if (!(Property->GetNameCPP().EndsWith(TEXT("_SpatialOSContext"))))
 		// IMPROBABLE-END
 		{
