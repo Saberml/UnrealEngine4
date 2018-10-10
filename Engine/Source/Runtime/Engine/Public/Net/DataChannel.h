@@ -13,6 +13,10 @@
 #include "Net/DataBunch.h"
 #include "Engine/ChildConnection.h"
 
+// IMPROBABLE-BEGIN - Disable sending if using Spatial Networking
+#include "GeneralProjectSettings.h"
+// IMPROBABLE-END
+
 /*-----------------------------------------------------------------------------
 	UControlChannel base class.
 -----------------------------------------------------------------------------*/
@@ -81,7 +85,9 @@ private:
 		{ \
 			static_assert(Index < 256, "Control channel message must be a byte."); \
 			checkSlow(!Conn->IsA(UChildConnection::StaticClass())); /** control channel messages can only be sent on the parent connection */ \
-			if (Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-BEGIN - Disable sending if we are using Spatial Networking */ \
+			if (!GetDefault<UGeneralProjectSettings>()->bSpatialNetworking && Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-END */ \
 			{ \
 				FControlChannelOutBunch Bunch(Conn->Channels[0], false); \
 				uint8 MessageType = Index; \
@@ -107,7 +113,9 @@ private:
 		{ \
 			static_assert(Index < 256, "Control channel message must be a byte."); \
 			checkSlow(!Conn->IsA(UChildConnection::StaticClass())); /** control channel messages can only be sent on the parent connection */ \
-			if (Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-BEGIN - Disable sending if we are using Spatial Networking */ \
+			if (!GetDefault<UGeneralProjectSettings>()->bSpatialNetworking && Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-END */ \
 			{ \
 				FControlChannelOutBunch Bunch(Conn->Channels[0], false); \
 				uint8 MessageType = Index; \
@@ -148,7 +156,9 @@ private:
 		{ \
 			static_assert(Index < 256, "Control channel message must be a byte."); \
 			checkSlow(!Conn->IsA(UChildConnection::StaticClass())); /** control channel messages can only be sent on the parent connection */ \
-			if (Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-BEGIN - Disable sending if we are using Spatial Networking */ \
+			if (!GetDefault<UGeneralProjectSettings>()->bSpatialNetworking && Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-END */ \
 			{ \
 				FControlChannelOutBunch Bunch(Conn->Channels[0], false); \
 				uint8 MessageType = Index; \
@@ -191,7 +201,9 @@ private:
 		{ \
 			static_assert(Index < 256, "Control channel message must be a byte."); \
 			checkSlow(!Conn->IsA(UChildConnection::StaticClass())); /** control channel messages can only be sent on the parent connection */ \
-			if (Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-BEGIN - Disable sending if we are using Spatial Networking */ \
+			if (!GetDefault<UGeneralProjectSettings>()->bSpatialNetworking && Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-END */ \
 			{ \
 				FControlChannelOutBunch Bunch(Conn->Channels[0], false); \
 				uint8 MessageType = Index; \
@@ -237,7 +249,9 @@ private:
 		{ \
 			static_assert(Index < 256, "Control channel message must be a byte."); \
 			checkSlow(!Conn->IsA(UChildConnection::StaticClass())); /** control channel messages can only be sent on the parent connection */ \
-			if (Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-BEGIN - Disable sending if we are using Spatial Networking */ \
+			if (!GetDefault<UGeneralProjectSettings>()->bSpatialNetworking && Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-END */ \
 			{ \
 				FControlChannelOutBunch Bunch(Conn->Channels[0], false); \
 				uint8 MessageType = Index; \
@@ -287,7 +301,9 @@ private:
 		{ \
 			static_assert(Index < 256, "Control channel message must be a byte."); \
 			checkSlow(!Conn->IsA(UChildConnection::StaticClass())); /** control channel messages can only be sent on the parent connection */ \
-			if (Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-BEGIN - Disable sending if we are using Spatial Networking */ \
+			if (!GetDefault<UGeneralProjectSettings>()->bSpatialNetworking && Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-END */ \
 			{ \
 				FControlChannelOutBunch Bunch(Conn->Channels[0], false); \
 				uint8 MessageType = Index; \
@@ -346,7 +362,9 @@ private:
 		{ \
 			static_assert(Index < 256, "Control channel message must be a byte."); \
 			checkSlow(!Conn->IsA(UChildConnection::StaticClass())); /** control channel messages can only be sent on the parent connection */ \
-			if (Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-BEGIN - Disable sending if we are using Spatial Networking */ \
+			if (!GetDefault<UGeneralProjectSettings>()->bSpatialNetworking && Conn->Channels[0] != NULL && !Conn->Channels[0]->Closing) \
+			/** IMPROBABLE-END */ \
 			{ \
 				FControlChannelOutBunch Bunch(Conn->Channels[0], false); \
 				uint8 MessageType = Index; \
