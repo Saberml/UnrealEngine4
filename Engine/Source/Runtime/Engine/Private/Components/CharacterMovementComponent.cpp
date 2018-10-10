@@ -6741,6 +6741,13 @@ void UCharacterMovementComponent::SmoothCorrection(const FVector& OldLocation, c
 		return;
 	}
 
+	// IMPROBABLE-BEGIN - Don't run function on non-authoritative server
+	if (GetNetMode() == NM_DedicatedServer || GetNetMode() == NM_Standalone)
+	{
+		return;
+	}
+	// IMPROBABLE-END
+
 	// We shouldn't be running this on a server that is not a listen server.
 	checkSlow(GetNetMode() != NM_DedicatedServer);
 	checkSlow(GetNetMode() != NM_Standalone);
@@ -6928,6 +6935,13 @@ void UCharacterMovementComponent::SmoothClientPosition(float DeltaSeconds)
 	{
 		return;
 	}
+
+	// IMPROBABLE-BEGIN - Don't run function on non-authoritative server
+	if (GetNetMode() == NM_DedicatedServer || GetNetMode() == NM_Standalone)
+	{
+		return;
+	}
+	// IMPROBABLE-END
 
 	// We shouldn't be running this on a server that is not a listen server.
 	checkSlow(GetNetMode() != NM_DedicatedServer);
