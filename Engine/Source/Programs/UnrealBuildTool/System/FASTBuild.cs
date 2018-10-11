@@ -513,7 +513,16 @@ namespace UnrealBuildTool
 			stream.WriteText("; {0}\n", MergedCommandArguments);
 			stream.WriteText("ObjectList('Action_{0}')\n{{\n", ActionIndex);
 			stream.WriteText("\t.Compiler = '{0}' \n", CompilerName);
-			stream.WriteText("\t.CompilerInputFiles = {{\n\t\t{0}\n\t}}\n", string.Join("\n\t\t,", InputFiles.Select(f => $"'{f}'").ToArray()));
+
+			if (InputFiles.Count > 1)
+			{
+				stream.WriteText("\t.CompilerInputFiles = {{\n\t\t{0}\n\t}}\n", string.Join("\n\t\t,", InputFiles.Select(f => $"'{f}'").ToArray()));
+			}
+			else
+			{
+				stream.WriteText($"\t.CompilerInputFiles = '{InputFiles.First()}'\n");
+			}
+			
 			stream.WriteText("\t.CompilerOutputPath = \"{0}\"\n", IntermediatePath);
 
 			if (!Action.bCanExecuteRemotely || !Action.bCanExecuteRemotelyWithSNDBS ||
@@ -694,14 +703,14 @@ namespace UnrealBuildTool
 				stream.WriteText("\t.Compiler = '{0}'\n", GetCompilerName(Action));
 				if (IsMSVC())
 				{
-					stream.WriteText("\t.CompilerOptions = '{0} /Fo\"%2\" /c'\n", AllOtherOptions);
+					stream.WriteText("\t.CompilerOptions = '{0} /Fo\"%2\" /c' \n", AllOtherOptions);
 				}
 				else
 				{
-					stream.WriteText("\t.CompilerOptions = '{0} -o \"%2\" -c'\n", AllOtherOptions);
+					stream.WriteText("\t.CompilerOptions = '{0} -o \"%2\" -c' \n", AllOtherOptions);
 				}
 
-				stream.WriteText("\t.CompilerOutputPath = \"{0}\"\n", Path.GetDirectoryName(OutputFile));
+				stream.WriteText("\t.CompilerOutputPath = '{0}' \n", Path.GetDirectoryName(OutputFile));
 
 				stream.WriteText("\t.Librarian = '{0}' \n", Action.CommandPath);
 
@@ -1073,11 +1082,9 @@ namespace UnrealBuildTool
 				throw new Exception("Missing value for /Fp");
 			}
 
-			var PCHToForceInclude = PCHOutputFile.Replace(".pch", "");
-
 			var AllOtherArguments = string.Join(" ", Tokens);
-			Stream.WriteText("\t.CompilerOptions = ' {0} /Fo\"%2\" /Fp\"{1}\" /Yu\"{2}\" /FI\"{3}\" '\n", AllOtherArguments,
-				PCHOutputFile, PCHIncludeHeader, PCHToForceInclude);
+			Stream.WriteText("\t.CompilerOptions = ' {0} /Fo\"%2\" /Fp\"{1}\" /Yu\"{2}\" '\n", AllOtherArguments,
+				PCHOutputFile, PCHIncludeHeader);
 		}
 
 		private static List<string> Tokenize(string Args)
