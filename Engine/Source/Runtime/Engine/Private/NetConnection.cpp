@@ -2359,7 +2359,7 @@ void UNetConnection::HandleClientPlayer( APlayerController *PC, UNetConnection* 
 			// we cannot use a replicated function here because the server has already transferred ownership and will reject it
 			// so use a control channel message
 			int32 Index = INDEX_NONE;
-			FNetControlMessage<NMT_PCSwap>::Send(this, Index);
+			//FNetControlMessage<NMT_PCSwap>::Send(this, Index);
 		}
 		LocalPlayer->PlayerController->Player = NULL;
 		LocalPlayer->PlayerController->NetConnection = NULL;
