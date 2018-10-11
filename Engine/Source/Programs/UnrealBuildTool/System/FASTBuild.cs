@@ -721,16 +721,13 @@ namespace UnrealBuildTool
 
 				if (DependencyIndices.Count > 0)
 				{
-					PrebuildDependencies.AddRange(DependencyIndices);
+					List<string> DependencyNames = DependencyIndices.ConvertAll(x => string.Format("'Action_{0}'", x));
+					stream.WriteText("\t.LibrarianAdditionalInputs = {{ {0} }} \n",
+						string.Join(",", DependencyNames.ToArray()));
 				}
-
-				stream.WriteText("\t.LibrarianAdditionalInputs = {{\n\t\t{0}\n\t}} \n", InputFilesAsString);
-
-				if (PrebuildDependencies.Count > 0)
+				else
 				{
-					List<string> PrebuildDependencyNames =
-						PrebuildDependencies.ConvertAll(x => $"'Action_{x}'");
-					stream.WriteText("\t.PreBuildDependencies = {{ {0} }} \n", string.Join(",", PrebuildDependencyNames.ToArray()));
+					stream.WriteText("\t.LibrarianAdditionalInputs = {{\n\t\t{0}\n\t}} \n", InputFilesAsString);
 				}
 
 				stream.WriteText("\t.LibrarianOutput = '{0}' \n", OutputFile);
@@ -741,13 +738,16 @@ namespace UnrealBuildTool
 			{
 				stream.WriteText("Executable('Action_{0}')\n{{ \n", ActionIndex);
 				stream.WriteText("\t.Linker = '{0}' \n", Action.CommandPath);
-
-				stream.WriteText("\t.Libraries = {{ {0} }} \n", InputFilesAsString);
+				
 				if (DependencyIndices.Count > 0)
 				{
 					var DependencyNames = DependencyIndices.ConvertAll(x =>
 						$"\t\t'Action_{x}', ; {Actions[x].StatusDescription}");
-					stream.WriteText("\t.PreBuildDependencies = {{\n{0}\n\t}} \n", string.Join("\n", DependencyNames.ToArray()));
+					stream.WriteText("\t.Libraries = {{\n{0}\n\t}} \n", string.Join("\n", DependencyNames.ToArray()));
+				}
+				else
+				{
+					stream.WriteText("\t.Libraries = {{ {0} }} \n", InputFilesAsString);
 				}
 
 				if (IsMSVC())
