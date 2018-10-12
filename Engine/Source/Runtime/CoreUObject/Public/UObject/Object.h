@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "improbable/UnrealObjectRef.h"
 #include "UObject/Script.h"
 #include "UObject/ObjectMacros.h"
 #include "UObject/UObjectBaseUtility.h"
@@ -1291,6 +1292,10 @@ public:
 		Parms.EntryPoint=EntryPoint;
 		ProcessEvent(FindFunctionChecked(NAME_ExecuteUbergraph),&Parms);
 	}
+
+	// IMPROBABLE-BEGIN - Actor Proxies
+	FUnrealObjectRef UnrealObjectRef;
+	// IMPROBABLE-END 
 
 protected: 
 

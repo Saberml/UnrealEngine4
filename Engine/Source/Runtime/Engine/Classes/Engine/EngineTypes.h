@@ -2724,6 +2724,10 @@ enum ENetRole
 	ROLE_SimulatedProxy,
 	/** Locally autonomous proxy of this actor. */
 	ROLE_AutonomousProxy,
+	// IMPROBABLE-BEGIN - Actor proxies
+	/** Actor proxy of this actor. */
+	ROLE_ActorProxy,
+	// IMPROBABLE-END
 	/** Authoritative control over the actor. */
 	ROLE_Authority,
 	ROLE_MAX,

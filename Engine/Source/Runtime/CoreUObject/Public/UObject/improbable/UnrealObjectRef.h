@@ -4,8 +4,6 @@
 
 #include <cstdint>
 
-#include "UnrealObjectRef.generated.h"
-
 namespace improbable
 {
 
@@ -118,11 +116,8 @@ inline uint32 GetTypeHash(const improbable::TSchemaOption<T>& Option)
 
 using Worker_EntityId = std::int64_t;
 
-USTRUCT(BlueprintType)
 struct FUnrealObjectRef
 {
-	GENERATED_BODY()
-
 	FUnrealObjectRef() = default;
 
 	FUnrealObjectRef(Worker_EntityId Entity, uint32 Offset)

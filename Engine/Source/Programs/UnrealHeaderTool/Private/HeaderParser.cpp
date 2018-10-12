@@ -894,6 +894,7 @@ namespace
 
 			case CPT_Struct:
 			{
+
 				if (VarProperty.Struct->StructFlags & STRUCT_HasInstancedReference)
 				{
 					VarProperty.PropertyFlags |= CPF_ContainsInstancedReference;
@@ -4807,45 +4808,45 @@ UProperty* FHeaderParser::GetVarNameAndDim
 			ObjectFlags       = RF_Public;
 			NewMapKeyProperty = CreateVariableProperty(*VarProperty.MapKeyProp, NewScope, *(PropertyName.ToString() + TEXT("_Key")), ObjectFlags, VariableCategory, CurrentSrcFile);
 		}
-		// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
-		else if (VarProperty.IsObject() && VariableCategory == EVariableCategory::Member
-			&& !(VarProperty.PropertyFlags & CPF_RepSkip) && VarProperty.Type != CPT_Interface)
-		{
-			// Due to optimisations within Unreals material system we have to ignore the generation of
-			// FUnrealObjectRefs for the following types.
-			if (Scope->GetName() != TEXT("ExpressionInput")
-				&& Scope->GetName() != TEXT("MaterialInput")
-				&& Scope->GetName() != TEXT("MaterialAttributesInput")
-				&& Scope->GetName() != TEXT("Vector2MaterialInput")
-				&& Scope->GetName() != TEXT("VectorMaterialInput")
-				&& Scope->GetName() != TEXT("ScalarMaterialInput")
-				&& Scope->GetName() != TEXT("MemberReference"))
-			{
-				// Create a UProperty for the generated _SpatialOSContext variable.
-				// The creation parameters used below were deduced by copying the values
-				// from an existing UProperty that referenced an FUnrealObjectRef.
-				const FString VarName(VarProperty.Identifier);
+		//// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
+		//else if (VarProperty.IsObject() && VariableCategory == EVariableCategory::Member
+		//	&& !(VarProperty.PropertyFlags & CPF_RepSkip) && VarProperty.Type != CPT_Interface)
+		//{
+		//	// Due to optimisations within Unreals material system we have to ignore the generation of
+		//	// FUnrealObjectRefs for the following types.
+		//	if (Scope->GetName() != TEXT("ExpressionInput")
+		//		&& Scope->GetName() != TEXT("MaterialInput")
+		//		&& Scope->GetName() != TEXT("MaterialAttributesInput")
+		//		&& Scope->GetName() != TEXT("Vector2MaterialInput")
+		//		&& Scope->GetName() != TEXT("VectorMaterialInput")
+		//		&& Scope->GetName() != TEXT("ScalarMaterialInput")
+		//		&& Scope->GetName() != TEXT("MemberReference"))
+		//	{
+		//		// Create a UProperty for the generated _SpatialOSContext variable.
+		//		// The creation parameters used below were deduced by copying the values
+		//		// from an existing UProperty that referenced an FUnrealObjectRef.
+		//		const FString VarName(VarProperty.Identifier);
 
-				FPropertyBase ObjRefProp(EPropertyType::CPT_Struct);
-				ObjRefProp.ArrayType = EArrayType::None;
-				ObjRefProp.PropertyFlags = 18014398509481984;
-				ObjRefProp.ImpliedPropertyFlags = 0;
-				ObjRefProp.RefQualifier = ERefQualifier::None;
-				ObjRefProp.MapKeyProp = nullptr;
-				ObjRefProp.PropertyExportFlags = EPropertyHeaderExportFlags::PROPEXPORT_Public;
-				ObjRefProp.Struct = FindObject<UScriptStruct>(ANY_PACKAGE, TEXT("UnrealObjectRef"));
-				ObjRefProp.MetaClass = nullptr;
-				ObjRefProp.DelegateName = NAME_None;
-				ObjRefProp.DelegateSignatureOwnerClass = nullptr;
-				ObjRefProp.RepNotifyName = NAME_None;
-				ObjRefProp.MetaData = VarProperty.MetaData;
-				ObjRefProp.PointerType = EPointerType::None;
-				ObjRefProp.IntType = EIntType::None;
+		//		FPropertyBase ObjRefProp(EPropertyType::CPT_Struct);
+		//		ObjRefProp.ArrayType = EArrayType::None;
+		//		ObjRefProp.PropertyFlags = 18014398509481984;
+		//		ObjRefProp.ImpliedPropertyFlags = 0;
+		//		ObjRefProp.RefQualifier = ERefQualifier::None;
+		//		ObjRefProp.MapKeyProp = nullptr;
+		//		ObjRefProp.PropertyExportFlags = EPropertyHeaderExportFlags::PROPEXPORT_Public;
+		//		ObjRefProp.Struct = FindObject<UScriptStruct>(ANY_PACKAGE, TEXT("UnrealObjectRef"));
+		//		ObjRefProp.MetaClass = nullptr;
+		//		ObjRefProp.DelegateName = NAME_None;
+		//		ObjRefProp.DelegateSignatureOwnerClass = nullptr;
+		//		ObjRefProp.RepNotifyName = NAME_None;
+		//		ObjRefProp.MetaData = VarProperty.MetaData;
+		//		ObjRefProp.PointerType = EPointerType::None;
+		//		ObjRefProp.IntType = EIntType::None;
 
-				const FName ObjRefPropertyName = *(PropertyName.ToString().Append(FString(TEXT("_SpatialOSContext"))));
-				NewObjectRefProperty = CreateVariableProperty(ObjRefProp, Scope, ObjRefPropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
-			}
-		}
+		//		const FName ObjRefPropertyName = *(PropertyName.ToString().Append(FString(TEXT("_SpatialOSContext"))));
+		//		NewObjectRefProperty = CreateVariableProperty(ObjRefProp, Scope, ObjRefPropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);
+		//	}
+		//}
 		// IMPROBABLE-END
 
 		NewProperty = CreateVariableProperty(VarProperty, NewScope, PropertyName, ObjectFlags, VariableCategory, CurrentSrcFile);

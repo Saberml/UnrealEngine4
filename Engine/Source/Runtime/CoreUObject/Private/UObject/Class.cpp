@@ -2759,87 +2759,6 @@ UObject* UClass::CreateDefaultObject()
 	return ClassDefaultObject;
 }
 
-// IMPROBABLE-BEGIN - Actor proxies
-// This code is copied from the CreateDefaultObject
-UObject* UClass::CreateProxyDefaultObject()
-{
-	if (ProxyDefaultObject == NULL)
-	{
-		UClass* ParentClass = GetSuperClass();
-		UObject* ParentProxyDefaultObject = NULL;
-		if (ParentClass != NULL)
-		{
-			UObjectForceRegistration(ParentClass);
-			ParentProxyDefaultObject = ParentClass->GetProxyDefaultObject(); // Force the default object to be constructed if it isn't already
-			check(GConfig);
-			if (GEventDrivenLoaderEnabled && EVENT_DRIVEN_ASYNC_LOAD_ACTIVE_AT_RUNTIME)
-			{
-				check(ParentProxyDefaultObject && !ParentProxyDefaultObject->HasAnyFlags(RF_NeedLoad));
-			}
-		}
-
-		if ((ParentProxyDefaultObject != NULL) || (this == UObject::StaticClass()))
-		{
-			// If this is a class that can be regenerated, it is potentially not completely loaded.  Preload and Link here to ensure we properly zero memory and read in properties for the PDO
-			if (HasAnyClassFlags(CLASS_CompiledFromBlueprint) && (PropertyLink == NULL) && !GIsDuplicatingClassForReinstancing)
-			{
-				auto ClassLinker = GetLinker();
-				if (ClassLinker)
-				{
-					if (!GEventDrivenLoaderEnabled)
-					{
-						UField* FieldIt = Children;
-						while (FieldIt && (FieldIt->GetOuter() == this))
-						{
-							// If we've had cyclic dependencies between classes here, we might need to preload to ensure that we load the rest of the property chain
-							if (FieldIt->HasAnyFlags(RF_NeedLoad))
-							{
-								ClassLinker->Preload(FieldIt);
-							}
-							FieldIt = FieldIt->Next;
-						}
-					}
-
-					StaticLink(true);
-				}
-			}
-
-			// in the case of cyclic dependencies, the above Preload() calls could end up 
-			// invoking this method themselves... that means that once we're done with  
-			// all the Preload() calls we have to make sure ProxyDefaultObject is still 
-			// NULL (so we don't invalidate one that has already been setup)
-			if (ProxyDefaultObject == NULL)
-			{
-				FString PackageName;
-				FString PDOName;
-				bool bDoNotify = false;
-				if (GIsInitialLoad && GetOutermost()->HasAnyPackageFlags(PKG_CompiledIn))
-				{
-					PackageName = GetOutermost()->GetFName().ToString();
-					PDOName = GetProxyDefaultObjectName().ToString();
-					NotifyRegistrationEvent(*PackageName, *PDOName, ENotifyRegistrationType::NRT_ClassPDO, ENotifyRegistrationPhase::NRP_Started);
-					bDoNotify = true;
-				}
-
-				// RF_ArchetypeObject flag is often redundant to RF_ClassDefaultObject, but we need to tag
-				// the PDO as RF_ArchetypeObject in order to propagate that flag to any default sub objects.
-				ProxyDefaultObject = StaticAllocateObject(this, GetOuter(), NAME_None, EObjectFlags(RF_Public | RF_ClassDefaultObject | RF_ArchetypeObject));
-				check(ProxyDefaultObject);
-				// Blueprint PDOs have their properties always initialized.
-				const bool bShouldInitializeProperties = !HasAnyClassFlags(CLASS_Native | CLASS_Intrinsic);
-				(*ClassConstructor)(FObjectInitializer(ProxyDefaultObject, ParentProxyDefaultObject, false, bShouldInitializeProperties));
-				if (bDoNotify)
-				{
-					NotifyRegistrationEvent(*PackageName, *PDOName, ENotifyRegistrationType::NRT_ClassCDO, ENotifyRegistrationPhase::NRP_Finished);
-				}
-				ProxyDefaultObject->PostPDOContruct();
-			}
-		}
-	}
-	return ProxyDefaultObject;
-}
-// IMPROBABLE-END
-
 /**
  * Feedback context implementation for windows.
  */
@@ -2920,17 +2839,6 @@ FName UClass::GetDefaultObjectName()
 	AppendName(DefaultName);
 	return FName(*DefaultName);
 }
-
-// IMPROBABLE-BEGIN - Actor proxies
-FName UClass::GetProxyDefaultObjectName()
-{
-	FString DefaultName;
-	DefaultName.Reserve(NAME_SIZE);
-	DefaultName += PROXY_DEFAULT_OBJECT_PREFIX;
-	AppendName(DefaultName);
-	return FName(*DefaultName);
-}
-// IMPROBABLE-END
 
 //
 // Register the native class.
