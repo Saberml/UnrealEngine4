@@ -2766,7 +2766,7 @@ UObject* FNetGUIDCache::GetObjectFromNetGUID( const FNetworkGUID& NetGUID, const
 
 	// At this point, we either have an outer, or we are a package
 	check( !CacheObjectPtr->bIsPending );
-	//check(ObjOuter == NULL || ObjOuter->GetOutermost()->IsFullyLoaded() || ObjOuter->GetOutermost()->HasAnyPackageFlags( TreatAsLoadedFlags ));
+	check(ObjOuter == NULL || ObjOuter->GetOutermost()->IsFullyLoaded() || ObjOuter->GetOutermost()->HasAnyPackageFlags( TreatAsLoadedFlags ));
 
 	// See if this object is in memory
 	Object = StaticFindObject( UObject::StaticClass(), ObjOuter, *CacheObjectPtr->PathName.ToString(), false );
