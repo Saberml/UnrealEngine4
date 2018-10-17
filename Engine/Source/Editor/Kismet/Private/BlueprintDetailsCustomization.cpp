@@ -683,6 +683,7 @@ void FBlueprintVarActionDetails::CustomizeDetails( IDetailLayoutBuilder& DetailL
 	ReplicationOptions.Add(MakeShareable(new FString("None")));
 	ReplicationOptions.Add(MakeShareable(new FString("Replicated")));
 	ReplicationOptions.Add(MakeShareable(new FString("RepNotify")));
+	ReplicationOptions.Add(MakeShareable(new FString("Handover"))); // IMPROBABLE-CHANGE - Mark properties as handover in blueprints
 
 	TSharedPtr<SToolTip> ReplicationTooltip = IDocumentation::Get()->CreateToolTip( TAttribute<FText>::Create( TAttribute<FText>::FGetter::CreateRaw( this, &FBlueprintVarActionDetails::ReplicationTooltip ) ), NULL, DocLink, TEXT("Replication"));
 
@@ -2236,6 +2237,21 @@ TSharedPtr<FString> FBlueprintVarActionDetails::GetVariableReplicationType() con
 
 				VariableReplication = !IsReplicated ? EVariableReplication::None :
 					bHasRepNotify ? EVariableReplication::RepNotify : EVariableReplication::Replicated;
+
+				// IMPROBABLE-BEGIN - Mark properties as handover in blueprints
+				bool IsHandover = (PropFlags & CPF_Handover) > 0;
+				if (IsHandover)
+				{
+					if (VariableReplication != EVariableReplication::None)
+					{
+						UE_LOG(LogBlueprint, Error, TEXT("Variable %s in blueprint %s is marked as both replicated and handover - this is not allowed. It will become only replicated."), *VariableProperty->GetName(), *BlueprintObj->GetName());
+					}
+					else
+					{
+						VariableReplication = EVariableReplication::Handover;
+					}
+				}
+				// IMPROBABLE-END
 			}
 		}
 	}
@@ -2270,6 +2286,7 @@ void FBlueprintVarActionDetails::OnChangeReplication(TSharedPtr<FString> ItemSel
 			{
 			case EVariableReplication::None:
 				*PropFlagPtr &= ~CPF_Net;
+				*PropFlagPtr &= ~CPF_Handover; // IMPROBABLE-CHANGE - Mark properties as handover in blueprints
 				ReplicationOnRepFuncChanged(FName(NAME_None).ToString());
 
 				//set replication condition to none:
@@ -2282,11 +2299,21 @@ void FBlueprintVarActionDetails::OnChangeReplication(TSharedPtr<FString> ItemSel
 				
 			case EVariableReplication::Replicated:
 				*PropFlagPtr |= CPF_Net;
+				*PropFlagPtr &= ~CPF_Handover; // IMPROBABLE-CHANGE - Mark properties as handover in blueprints
 				ReplicationOnRepFuncChanged(FName(NAME_None).ToString());	
 				break;
 
+			// IMPROBABLE-BEGIN - Mark properties as handover in blueprints
+			case EVariableReplication::Handover:
+				*PropFlagPtr |= CPF_Handover;
+				*PropFlagPtr &= ~CPF_Net;
+				ReplicationOnRepFuncChanged(FName(NAME_None).ToString());
+				break;
+			// IMPROBABLE-END
+
 			case EVariableReplication::RepNotify:
 				*PropFlagPtr |= CPF_Net;
+				*PropFlagPtr &= ~CPF_Handover; // IMPROBABLE-CHANGE - Mark properties as handover in blueprints
 				FString NewFuncName = FString::Printf(TEXT("OnRep_%s"), *VariableProperty->GetName());
 				UEdGraph* FuncGraph = FindObject<UEdGraph>(BlueprintObj, *NewFuncName);
 				if (!FuncGraph)

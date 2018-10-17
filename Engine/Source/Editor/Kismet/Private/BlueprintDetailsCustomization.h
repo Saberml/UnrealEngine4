@@ -54,6 +54,14 @@ namespace EVariableReplication
 		 */
 		RepNotify,
 
+		// IMPROBABLE-BEGIN - Mark properties as handover in blueprints
+		/**
+		 * Replicated between two servers so when the actor crosses the worker boundary, the new server can simulate
+		 * the actor correctly.
+		 */
+		Handover,
+		// IMPROBABLE-END
+
 		MAX
 	};
 }
