@@ -38,7 +38,7 @@
 #include "Serialization/ArchiveScriptReferenceCollector.h"
 #include "UObject/FrameworkObjectVersion.h"
 #include "UObject/GarbageCollection.h"
-#include "SpatialGDKCustomVersion.h"	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
+#include "Serialization/SpatialGDKCustomVersion.h"	// IMPROBABLE-CHANGE - Added ESpatialClassFlags
 
 // This flag enables some expensive class tree validation that is meant to catch mutations of 
 // the class tree outside of SetSuperStruct. It has been disabled because loading blueprints 

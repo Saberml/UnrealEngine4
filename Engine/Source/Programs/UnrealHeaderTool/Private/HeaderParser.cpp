@@ -4840,8 +4840,8 @@ UProperty* FHeaderParser::GetVarNameAndDim
 
 				FPropertyBase ObjRefProp(EPropertyType::CPT_Struct);
 				ObjRefProp.ArrayType = EArrayType::None;
-				ObjRefProp.PropertyFlags = 18014398509481984;
-				ObjRefProp.ImpliedPropertyFlags = 0;
+				ObjRefProp.PropertyFlags = static_cast<EPropertyFlags>(CPF_NativeAccessSpecifierPublic);
+				ObjRefProp.ImpliedPropertyFlags = static_cast<EPropertyFlags>(CPF_None);
 				ObjRefProp.RefQualifier = ERefQualifier::None;
 				ObjRefProp.MapKeyProp = nullptr;
 				ObjRefProp.PropertyExportFlags = EPropertyHeaderExportFlags::PROPEXPORT_Public;

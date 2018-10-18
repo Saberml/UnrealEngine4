@@ -5080,7 +5080,7 @@ FNativeClassHeaderGenerator::FNativeClassHeaderGenerator(
 			TEXT("#endif")																		LINE_TERMINATOR
 			TEXT("#define %s")																	LINE_TERMINATOR
 			// IMPROBABLE-BEGIN - Generate FUnrealObjectRef context variables
-			TEXT("#include \"improbable/UnrealObjectRef.h\"")			LINE_TERMINATOR
+			TEXT("#include \"UObject/improbable/UnrealObjectRef.h\"")			LINE_TERMINATOR
 			// IMPROBABLE-END
 			LINE_TERMINATOR,
 			*SourceFile->GetFileDefineName(), *SourceFile->GetStrippedFilename(), *SourceFile->GetStrippedFilename(), *SourceFile->GetFileDefineName());
