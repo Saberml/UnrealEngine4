@@ -469,13 +469,7 @@ namespace UnrealBuildTool
 				DateTime StartTime = DateTime.UtcNow;
 
 				ActionExecutor Executor;
-				// IMPROBABLE-BEGIN: Added FASTBuild
-				if(FASTBuild.IsAvailable())
-				{
-					Executor = new FASTBuild();
-				}
-				else if(bIsRemoteCompile)
-				// IMPROBABLE-END
+				if(bIsRemoteCompile)
 				{
 					Executor = new RemoteExecutor();
 				}

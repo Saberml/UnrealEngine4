@@ -177,7 +177,6 @@
     <Compile Include="System\PrecompileMode.cs" />
     <Compile Include="System\RulesDocumentation.cs" />
     <Compile Include="System\Log.cs" />
-    <Compile Include="System\FASTBuild.cs" />
     <Compile Include="System\PrecompiledHeaderInstance.cs" />
     <Compile Include="System\PrecompiledHeaderTemplate.cs" />
     <Compile Include="Configuration\TargetInfo.cs" />
