@@ -3883,7 +3883,7 @@ int32 AActor::GetFunctionCallspace( UFunction* Function, void* Parameters, FFram
 		if(bIsServer)
 		{
 			// Server should execute locally and call remotely
-			if (RemoteRole != ROLE_None)
+			if (RemoteRole != ROLE_None && Role == ROLE_Authority) // IMPROBABLE-CHANGE: Only send multicast RPCs from the authoritative server
 			{
 				DEBUG_CALLSPACE(TEXT("GetFunctionCallspace Multicast: %s"), *Function->GetName());
 				return (FunctionCallspace::Local | FunctionCallspace::Remote);
@@ -3901,9 +3901,9 @@ int32 AActor::GetFunctionCallspace( UFunction* Function, void* Parameters, FFram
 	}
 
 	// IMPROBABLE-BEGIN: Added cross-server RPCs
-	if(bIsServer && Function->FunctionFlags & FUNC_NetCrossServer)
+	if (bIsServer && Function->FunctionFlags & FUNC_NetCrossServer)
 	{
-		if(Role < ROLE_Authority)
+		if (Role < ROLE_Authority)
 		{
 			// If we don't have authority, replicate
 			DEBUG_CALLSPACE(TEXT("GetFunctionCallspace Client calling cross-server function: %s %s"), *Function->GetName(), FunctionCallspace::ToString(Callspace));
