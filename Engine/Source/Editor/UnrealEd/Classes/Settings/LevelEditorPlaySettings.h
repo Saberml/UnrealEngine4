@@ -302,8 +302,8 @@ private:
 	int32 PlayNumberOfClients;
 
 	// IMPROBABLE-BEGIN - Added running of multiple dedicated servers in same process
-	/** Extremely Experimental. Keep at 1 unless you know what you're doing! */
-	UPROPERTY(config, EditAnywhere, Category=MultiplayerOptions, meta=(ClampMin = "1", UIMin = "1", UIMax = "5"))
+	/** Experimental! */
+	UPROPERTY(config, EditAnywhere, Category=MultiplayerOptions, meta=(ClampMin = "1", UIMin = "1", UIMax = "2"))
 	int32 PlayNumberOfServers;
 	// IMPROBABLE-END
 
