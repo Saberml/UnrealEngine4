@@ -886,8 +886,8 @@ TSharedRef< SWidget > FPlayWorldCommands::GeneratePlayMenuContent( TSharedRef<FU
 				.MinValue(1)
 				.MaxValue(TNumericLimits<int32>::Max())
 				.MinSliderValue(1)
-				.MaxSliderValue(5)
-				.ToolTipText(LOCTEXT( "NumberOfServersToolTip", "Extremely Experimental. Keep at 1 unless you know what you're doing!" ))
+				.MaxSliderValue(2)
+				.ToolTipText(LOCTEXT( "NumberOfServersToolTip", "Experimental!" ))
 				.Value(FInternalPlayWorldCommandCallbacks::GetNumberOfServers())
 				.OnValueCommitted_Static(&FInternalPlayWorldCommandCallbacks::SetNumberOfServers);
 
