@@ -4275,6 +4275,10 @@ void APlayerController::TickActor( float DeltaSeconds, ELevelTick TickType, FAct
 					if (ServerData->ServerTimeStamp != 0.f)
 					{
 						const float TimeSinceUpdate = World->GetTimeSeconds() - ServerData->ServerTimeStamp;
+						if (TimeSinceUpdate > 1.0f)
+						{
+							UE_LOG(LogTemp, Warning, TEXT("Just trying this: %f %f %f"), TimeSinceUpdate, World->GetTimeSeconds(), ServerData->ServerTimeStamp);
+						}
 						const float PawnTimeSinceUpdate = TimeSinceUpdate * GetPawn()->CustomTimeDilation;
 						if (PawnTimeSinceUpdate > FMath::Max<float>(DeltaSeconds+0.06f, AGameNetworkManager::StaticClass()->GetDefaultObject<AGameNetworkManager>()->MAXCLIENTUPDATEINTERVAL * GetPawn()->GetActorTimeDilation()))
 						{

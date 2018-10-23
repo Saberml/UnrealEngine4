@@ -145,28 +145,52 @@ struct FPredictionHandoverData
 	// These are temporary variables updated per server frame that we can afford to lose on handover
 
 	// These properties below need to be handed over because they are cumulative over entire actor lifetime
-	UPROPERTY()
-	float CurrentClientTimeStamp;
-	UPROPERTY()
-	float LastUpdateTime;
-	UPROPERTY()
-	float ServerTimeStampLastServerMove;
-	UPROPERTY()
-	float LifetimeRawTimeDiscrepancy;
-	UPROPERTY()
-	float WorldCreationTime;
-	UPROPERTY()
-	FRotator CurrentRotation;
+	UPROPERTY(VisibleAnywhere, Category = Handover)
+	float PendingClientAdjustment_Timestamp;
+	UPROPERTY(VisibleAnywhere, Category = Handover)
+	float PendingClientAdjustment_DeltaTime;
+	UPROPERTY(VisibleAnywhere, Category = Handover)
+	FVector PendingClientAdjustment_NewLoc;
+	UPROPERTY(VisibleAnywhere, Category = Handover)
+	FVector PendingClientAdjustment_NewVel;
+	UPROPERTY(VisibleAnywhere, Category = Handover)
+	FRotator PendingClientAdjustment_NewRot;
+	UPROPERTY(VisibleAnywhere, Category = Handover)
+	UPrimitiveComponent* PendingClientAdjustment_NewBase;
+	UPROPERTY(VisibleAnywhere, Category = Handover)
+	FName PendingClientAdjustment_NewBaseBoneName;
+	UPROPERTY(VisibleAnywhere, Category = Handover)
+	bool PendingClientAdjustment_bAckGoodMove;
+	UPROPERTY(VisibleAnywhere, Category = Handover)
+	bool PendingClientAdjustment_bBaseRelativePosition;
+	UPROPERTY(VisibleAnywhere, Category = Handover)
+	uint8 PendingClientAdjustment_MovementMode;
 
-	FPredictionHandoverData()
-		: CurrentClientTimeStamp(0.f)
-		, LastUpdateTime(0.f)
-		, ServerTimeStampLastServerMove(0.f)
-		, LifetimeRawTimeDiscrepancy(0.f)
-		, WorldCreationTime(0.f)
-		, CurrentRotation()
-	{
-	}
+
+	UPROPERTY(VisibleAnywhere, Category=Handover)
+	float CurrentClientTimeStamp;
+	UPROPERTY(VisibleAnywhere, Category=Handover)
+	float LastUpdateTime;
+	UPROPERTY(VisibleAnywhere, Category=Handover)
+	float ServerTimeStamp;
+	UPROPERTY(VisibleAnywhere, Category=Handover)
+	float ServerTimeStampLastServerMove;
+	UPROPERTY(VisibleAnywhere, Category=Handover)
+	float MaxMoveDeltaTime;
+	UPROPERTY(VisibleAnywhere, Category=Handover)
+	uint32 bForceClientUpdate;
+	UPROPERTY(VisibleAnywhere, Category=Handover)
+	float LifetimeRawTimeDiscrepancy;
+	UPROPERTY(VisibleAnywhere, Category=Handover)
+	float TimeDiscrepancy;
+	UPROPERTY(VisibleAnywhere, Category=Handover)
+	bool bResolvingTimeDiscrepancy;
+	UPROPERTY(VisibleAnywhere, Category=Handover)
+	float TimeDiscrepancyResolutionMoveDeltaOverride;
+	UPROPERTY(VisibleAnywhere, Category=Handover)
+	float TimeDiscrepancyAccumulatedClientDeltasSinceLastServerTick;
+	UPROPERTY(VisibleAnywhere, Category=Handover)
+	float WorldCreationTime;
 };
 // IMPROBABLE-END
 
@@ -2064,10 +2088,11 @@ protected:
 	class FNetworkPredictionData_Server_Character* ServerPredictionData;
 
 	// IMPROBABLE-BEGIN
-	UPROPERTY(Handover)	// struct containing relevant handover data
+	UPROPERTY(Handover, VisibleAnywhere, Category=Handover)	// struct containing relevant handover data
 	FPredictionHandoverData PredictionHandoverData;
 
-	void UpdateHandoverData();  // updates PredictionHandoverData at end of every ServerMove or ServerMoveOld
+	void UpdateServerPredicitionDataWithHandover();
+	void UpdateServerPredictionHandoverData();  // updates PredictionHandoverData at end of every ServerMove or ServerMoveOld
 	// IMPROBABLE-END
 
 	/**

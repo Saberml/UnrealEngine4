@@ -1,4 +1,4 @@
-﻿// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -165,6 +165,7 @@ public:
 private:
 
 	/** Current transform of the component, relative to the world */
+	UPROPERTY(Handover)
 	FTransform ComponentToWorld;
 
 public:
