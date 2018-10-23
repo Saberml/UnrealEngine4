@@ -1140,6 +1140,8 @@ void UCharacterMovementComponent::TickComponent(float DeltaTime, enum ELevelTick
 	SCOPE_CYCLE_COUNTER(STAT_CharacterMovementTick);
 	CSV_SCOPED_TIMING_STAT(CharacterMovement, CharacterMovementTick);
 
+	UpdateServerPredictionDataWithHandover(); // IMPROBABLE-CHANGE - Fix movement when crossing the server boundary
+
 	const FVector InputVector = ConsumeInputVector();
 	if (!HasValidData() || ShouldSkipUpdate(DeltaTime))
 	{
@@ -1260,6 +1262,7 @@ void UCharacterMovementComponent::TickComponent(float DeltaTime, enum ELevelTick
 	}
 #endif // !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
 
+	UpdateServerPredictionHandoverData(); // IMPROBABLE-CHANGE - Fix movement when crossing the server boundary
 }
 
 void UCharacterMovementComponent::PostPhysicsTickComponent(float DeltaTime, FCharacterMovementComponentPostPhysicsTickFunction& ThisTickFunction)
@@ -7569,22 +7572,6 @@ FNetworkPredictionData_Server* UCharacterMovementComponent::GetPredictionData_Se
 	{
 		UCharacterMovementComponent* MutableThis = const_cast<UCharacterMovementComponent*>(this);
 		MutableThis->ServerPredictionData = new FNetworkPredictionData_Server_Character(*this);
-
-		// IMPROBABLE-BEGIN - sync data after handover
-		if (PredictionHandoverData.CurrentClientTimeStamp > 0.f)  // Don't call this for first spawn; alternatively make a flag
-		{
-			FindFloor(UpdatedComponent->GetComponentLocation(), MutableThis->CurrentFloor, false, NULL);  // compute CurrentFloor so that Velocity won't be reset inside PhysWalking
-			ServerPredictionData->CurrentClientTimeStamp = PredictionHandoverData.CurrentClientTimeStamp;
-			ServerPredictionData->LastUpdateTime = PredictionHandoverData.LastUpdateTime;
-			ServerPredictionData->ServerTimeStampLastServerMove = PredictionHandoverData.ServerTimeStampLastServerMove;
-			ServerPredictionData->LifetimeRawTimeDiscrepancy = PredictionHandoverData.LifetimeRawTimeDiscrepancy;
-			ServerPredictionData->WorldCreationTime = PredictionHandoverData.WorldCreationTime;
-			FRotator SavedRotation = PredictionHandoverData.CurrentRotation;
-			MutableThis->MoveUpdatedComponent(FVector::ZeroVector, SavedRotation, true);
-			UE_LOG(LogNetPlayerMovement, Verbose, TEXT("Syncing data after handover... velocity: %s, rotation: %s"), *Velocity.ToString(), *UpdatedComponent->GetComponentRotation().ToString());
-			//const_cast<FTransform&>(RootMotionParams.GetRootMotionTransform()).SetTranslation(Velocity);
-		}
-		// IMPROBABLE-END
 	}
 
 	return ServerPredictionData;
@@ -7612,7 +7599,7 @@ FNetworkPredictionData_Server_Character* UCharacterMovementComponent::GetPredict
 {
 	// Should only be called on server in network games
 	checkSlow(CharacterOwner != NULL);
-	checkSlow(CharacterOwner->Role == ROLE_Authority);
+	//checkSlow(CharacterOwner->Role == ROLE_Authority); // IMPROBABLE-CHANGE - This can run on a non-authoritative server
 	checkSlow(GetNetMode() < NM_Client);
 
 	if (ServerPredictionData == nullptr)
@@ -7957,17 +7944,68 @@ void UCharacterMovementComponent::CallServerMove
 }
 
 // IMPROBABLE-BEGIN - Sync PredictionHandoverDada with ServerData
-void UCharacterMovementComponent::UpdateHandoverData()
+void UCharacterMovementComponent::UpdateServerPredictionDataWithHandover()
 {
+	if (GetNetMode() == NM_DedicatedServer && CharacterOwner->Role != ROLE_Authority)
+	{
+		FNetworkPredictionData_Server_Character* ServerData = GetPredictionData_Server_Character();
+
+		ServerData->PendingAdjustment.TimeStamp = PredictionHandoverData.PendingClientAdjustment_Timestamp;
+		ServerData->PendingAdjustment.DeltaTime = PredictionHandoverData.PendingClientAdjustment_DeltaTime;
+		ServerData->PendingAdjustment.NewLoc = PredictionHandoverData.PendingClientAdjustment_NewLoc;
+		ServerData->PendingAdjustment.NewVel = PredictionHandoverData.PendingClientAdjustment_NewVel;
+		ServerData->PendingAdjustment.NewRot = PredictionHandoverData.PendingClientAdjustment_NewRot;
+		ServerData->PendingAdjustment.NewBase = PredictionHandoverData.PendingClientAdjustment_NewBase;
+		ServerData->PendingAdjustment.NewBaseBoneName = PredictionHandoverData.PendingClientAdjustment_NewBaseBoneName;
+		ServerData->PendingAdjustment.bAckGoodMove = PredictionHandoverData.PendingClientAdjustment_bAckGoodMove;
+		ServerData->PendingAdjustment.bBaseRelativePosition = PredictionHandoverData.PendingClientAdjustment_bBaseRelativePosition;
+		ServerData->PendingAdjustment.MovementMode = PredictionHandoverData.PendingClientAdjustment_MovementMode;
+
+		ServerData->CurrentClientTimeStamp = PredictionHandoverData.CurrentClientTimeStamp;
+		ServerData->LastUpdateTime = PredictionHandoverData.LastUpdateTime;
+		ServerData->ServerTimeStamp = PredictionHandoverData.ServerTimeStamp;
+		ServerData->ServerTimeStampLastServerMove = PredictionHandoverData.ServerTimeStampLastServerMove;
+		ServerData->MaxMoveDeltaTime = PredictionHandoverData.MaxMoveDeltaTime;
+		ServerData->bForceClientUpdate = PredictionHandoverData.bForceClientUpdate;
+		ServerData->LifetimeRawTimeDiscrepancy = PredictionHandoverData.LifetimeRawTimeDiscrepancy;
+		ServerData->bResolvingTimeDiscrepancy = PredictionHandoverData.bResolvingTimeDiscrepancy;
+		ServerData->TimeDiscrepancyResolutionMoveDeltaOverride = PredictionHandoverData.TimeDiscrepancyResolutionMoveDeltaOverride;
+		ServerData->TimeDiscrepancyAccumulatedClientDeltasSinceLastServerTick = PredictionHandoverData.TimeDiscrepancyAccumulatedClientDeltasSinceLastServerTick;
+		ServerData->WorldCreationTime = PredictionHandoverData.WorldCreationTime;
+	}
+}
+
+void UCharacterMovementComponent::UpdateServerPredictionHandoverData()
+{
+	if (CharacterOwner->Role != ROLE_Authority)
+	{
+		return;
+	}
+
 	FNetworkPredictionData_Server_Character* ServerData = GetPredictionData_Server_Character();
-	check(ServerData);
+
+	PredictionHandoverData.PendingClientAdjustment_Timestamp = ServerData->PendingAdjustment.TimeStamp;
+	PredictionHandoverData.PendingClientAdjustment_DeltaTime = ServerData->PendingAdjustment.DeltaTime;
+	PredictionHandoverData.PendingClientAdjustment_NewLoc = ServerData->PendingAdjustment.NewLoc;
+	PredictionHandoverData.PendingClientAdjustment_NewVel = ServerData->PendingAdjustment.NewVel;
+	PredictionHandoverData.PendingClientAdjustment_NewRot = ServerData->PendingAdjustment.NewRot;
+	PredictionHandoverData.PendingClientAdjustment_NewBase = ServerData->PendingAdjustment.NewBase;
+	PredictionHandoverData.PendingClientAdjustment_NewBaseBoneName = ServerData->PendingAdjustment.NewBaseBoneName;
+	PredictionHandoverData.PendingClientAdjustment_bAckGoodMove = ServerData->PendingAdjustment.bAckGoodMove;
+	PredictionHandoverData.PendingClientAdjustment_bBaseRelativePosition = ServerData->PendingAdjustment.bBaseRelativePosition;
+	PredictionHandoverData.PendingClientAdjustment_MovementMode = ServerData->PendingAdjustment.MovementMode;
 
 	PredictionHandoverData.CurrentClientTimeStamp = ServerData->CurrentClientTimeStamp;
 	PredictionHandoverData.LastUpdateTime = ServerData->LastUpdateTime;
+	PredictionHandoverData.ServerTimeStamp = ServerData->ServerTimeStamp;
 	PredictionHandoverData.ServerTimeStampLastServerMove = ServerData->ServerTimeStampLastServerMove;
+	PredictionHandoverData.MaxMoveDeltaTime = ServerData->MaxMoveDeltaTime;
+	PredictionHandoverData.bForceClientUpdate = ServerData->bForceClientUpdate;
 	PredictionHandoverData.LifetimeRawTimeDiscrepancy = ServerData->LifetimeRawTimeDiscrepancy;
+	PredictionHandoverData.bResolvingTimeDiscrepancy = ServerData->bResolvingTimeDiscrepancy;
+	PredictionHandoverData.TimeDiscrepancyResolutionMoveDeltaOverride = ServerData->TimeDiscrepancyResolutionMoveDeltaOverride;
+	PredictionHandoverData.TimeDiscrepancyAccumulatedClientDeltasSinceLastServerTick = ServerData->TimeDiscrepancyAccumulatedClientDeltasSinceLastServerTick;
 	PredictionHandoverData.WorldCreationTime = ServerData->WorldCreationTime;
-	PredictionHandoverData.CurrentRotation = UpdatedComponent->GetComponentRotation();
 }
 // IMPROBABLE-END
 
@@ -8004,7 +8042,6 @@ void UCharacterMovementComponent::ServerMoveOld_Implementation
 	ServerData->ServerTimeStampLastServerMove = ServerData->ServerTimeStamp;
 
 	MoveAutonomous(OldTimeStamp, DeltaTime, OldMoveFlags, OldAccel);
-	UpdateHandoverData();  // IMPROBABLE-CHANGE
 }
 
 
@@ -8087,7 +8124,7 @@ void UCharacterMovementComponent::ProcessClientTimeStampForTimeDiscrepancy(float
 {
 	// Should only be called on server in network games
 	check(CharacterOwner != NULL);
-	check(CharacterOwner->Role == ROLE_Authority);
+	//check(CharacterOwner->Role == ROLE_Authority); // IMPROBABLE-CHANGE - This can run on a non-authoritative server
 	checkSlow(GetNetMode() < NM_Client);
 
 	// Movement time discrepancy detection and resolution (potentially caused by client speed hacks, time manipulation)
@@ -8424,7 +8461,6 @@ void UCharacterMovementComponent::ServerMove_Implementation(
 			*GetNameSafe(GetMovementBase()), *CharacterOwner->GetBasedMovement().BoneName.ToString(), MovementBaseUtility::IsDynamicBase(GetMovementBase()) ? 1 : 0);
 
 	ServerMoveHandleClientError(TimeStamp, DeltaTime, Accel, ClientLoc, ClientMovementBase, ClientBaseBoneName, ClientMovementMode);
-	UpdateHandoverData();  // IMPROBABLE-CHANGE
 }
 
 
@@ -8717,6 +8753,7 @@ void UCharacterMovementComponent::SendClientAdjustment()
 		return;
 	}
 
+	UpdateServerPredictionDataWithHandover(); // IMPROBABLE-CHANGE - Fix movement when crossing the server boundary
 	FNetworkPredictionData_Server_Character* ServerData = GetPredictionData_Server_Character();
 	check(ServerData);
 

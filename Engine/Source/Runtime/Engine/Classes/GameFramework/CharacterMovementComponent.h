@@ -147,27 +147,50 @@ struct FPredictionHandoverData
 
 	// These properties below need to be handed over because they are cumulative over entire actor lifetime
 	UPROPERTY()
+	float PendingClientAdjustment_Timestamp;
+	UPROPERTY()
+	float PendingClientAdjustment_DeltaTime;
+	UPROPERTY()
+	FVector PendingClientAdjustment_NewLoc;
+	UPROPERTY()
+	FVector PendingClientAdjustment_NewVel;
+	UPROPERTY()
+	FRotator PendingClientAdjustment_NewRot;
+	UPROPERTY()
+	UPrimitiveComponent* PendingClientAdjustment_NewBase;
+	UPROPERTY()
+	FName PendingClientAdjustment_NewBaseBoneName;
+	UPROPERTY()
+	bool PendingClientAdjustment_bAckGoodMove;
+	UPROPERTY()
+	bool PendingClientAdjustment_bBaseRelativePosition;
+	UPROPERTY()
+	uint8 PendingClientAdjustment_MovementMode;
+
+	UPROPERTY()
 	float CurrentClientTimeStamp;
 	UPROPERTY()
 	float LastUpdateTime;
 	UPROPERTY()
+	float ServerTimeStamp;
+	UPROPERTY()
 	float ServerTimeStampLastServerMove;
+	UPROPERTY()
+	float MaxMoveDeltaTime;
+	UPROPERTY()
+	uint32 bForceClientUpdate;
 	UPROPERTY()
 	float LifetimeRawTimeDiscrepancy;
 	UPROPERTY()
-	float WorldCreationTime;
+	float TimeDiscrepancy;
 	UPROPERTY()
-	FRotator CurrentRotation;
-
-	FPredictionHandoverData()
-		: CurrentClientTimeStamp(0.f)
-		, LastUpdateTime(0.f)
-		, ServerTimeStampLastServerMove(0.f)
-		, LifetimeRawTimeDiscrepancy(0.f)
-		, WorldCreationTime(0.f)
-		, CurrentRotation()
-	{
-	}
+	bool bResolvingTimeDiscrepancy;
+	UPROPERTY()
+	float TimeDiscrepancyResolutionMoveDeltaOverride;
+	UPROPERTY()
+	float TimeDiscrepancyAccumulatedClientDeltasSinceLastServerTick;
+	UPROPERTY()
+	float WorldCreationTime;
 };
 // IMPROBABLE-END
 
@@ -2076,7 +2099,8 @@ protected:
 	UPROPERTY(Handover)	// struct containing relevant handover data
 	FPredictionHandoverData PredictionHandoverData;
 
-	void UpdateHandoverData();  // updates PredictionHandoverData at end of every ServerMove or ServerMoveOld
+	void UpdateServerPredictionDataWithHandover();
+	void UpdateServerPredictionHandoverData();
 	// IMPROBABLE-END
 
 	/**
