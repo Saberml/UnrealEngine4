@@ -378,7 +378,7 @@ ULevelEditorPlaySettings::ULevelEditorPlaySettings( const FObjectInitializer& Ob
 	PlayNumberOfClients = 1;
 	PlayNumberOfServers = 1; // IMPROBABLE-CHANGE - Added running of multiple dedicated servers in same process
 	ServerPort = 17777;
-	PlayNetDedicated = false;
+	PlayNetDedicated = true; // IMPROBABLE-CHANGE - Switch default to use dedicated server
 	RunUnderOneProcess = true;
 	RouteGamepadToSecondWindow = false;
 	AutoConnectToServer = true;
