@@ -419,14 +419,14 @@ protected:
 	 * Accumulated control input vector, stored in world space. This is the pending input, which is cleared (zeroed) once consumed.
 	 * @see GetPendingMovementInputVector(), AddMovementInput()
 	 */
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, Handover)
 	FVector ControlInputVector;
 
 	/**
 	 * The last control input vector that was processed by ConsumeMovementInputVector().
 	 * @see GetLastMovementInputVector()
 	 */
-	UPROPERTY(Transient)
+	UPROPERTY(Transient, Handover)
 	FVector LastControlInputVector;
 
 public:

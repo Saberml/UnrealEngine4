@@ -300,7 +300,7 @@ FRotator APawn::GetViewRotation() const
 
 void APawn::SpawnDefaultController()
 {
-	if ( Controller != nullptr || GetNetMode() == NM_Client)
+	if ( Controller != nullptr || GetNetMode() == NM_Client || Role != ROLE_Authority)
 	{
 		return;
 	}
