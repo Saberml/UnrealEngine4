@@ -1255,6 +1255,8 @@ protected:
 public:
 	// IMPROBABLE-BEGIN
 	virtual void OnSpatialAuthorityChange() {};  // Called when Spatial Position component changes authority
+
+	void SetActorAsProxy(bool bIsActorProxy);
 	// IMPROBABLE-END
 
 	/** Initiate a begin play call on this Actor, will handle calling in the correct order. */

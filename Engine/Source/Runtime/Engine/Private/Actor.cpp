@@ -3094,6 +3094,20 @@ void AActor::SwapRolesForReplay()
 	Swap(Role, RemoteRole);
 }
 
+// IMPROBABLE-BEGIN
+void AActor::SetActorAsProxy(bool bIsActorProxy)
+{
+	if (bIsActorProxy)
+	{
+		Role = ENetRole::ROLE_ActorProxy;
+		RemoteRole = ENetRole::ROLE_ActorProxy;
+		SetActorHiddenInGame(true);
+		SetActorTickEnabled(false);
+		SetActorEnableCollision(false);
+	}
+}
+// IMPROBABLE-END
+
 void AActor::DispatchBeginPlay()
 {
 	UWorld* World = (!HasActorBegunPlay() && !IsPendingKill() ? GetWorld() : nullptr);
