@@ -24,6 +24,12 @@
 
 #include "GameFramework/PlayerState.h"
 
+// IMPROBABLE-BEGIN Added includes to allow checking of existing PlayerController via GuidCache before initializing a new one.
+#include "Engine/PackageMapClient.h"
+#include "Engine/NetDriver.h"
+#include "GeneralProjectSettings.h"
+// IMPROBABLE-END
+
 DEFINE_LOG_CATEGORY(LogPath);
 
 #define LOCTEXT_NAMESPACE "Controller"
@@ -490,6 +496,26 @@ void AController::InstigatedAnyDamage(float Damage, const class UDamageType* Dam
 
 void AController::InitPlayerState()
 {
+	// IMPROBABLE-BEGIN Prevent creating multiple PlayerStates when crossing a worker boundary.
+	if (GetDefault<UGeneralProjectSettings>()->bSpatialNetworking)
+	{
+		UWorld* World = GetWorld();
+		check(World);
+		UNetDriver* NetDriver = World->GetNetDriver();
+		
+		if (NetDriver)
+		{
+			const FNetworkGUID NetGUID = NetDriver->GuidCache->GetNetGUID(this);
+
+			if (NetGUID.IsValid() && !NetGUID.IsDefault())
+			{
+				// NetGUID is valid, which means this PlayerController has already been initialized
+				return;
+			}
+		}
+	}
+	// IMPROBABLE-END
+
 	if ( GetNetMode() != NM_Client )
 	{
 		UWorld* const World = GetWorld();
