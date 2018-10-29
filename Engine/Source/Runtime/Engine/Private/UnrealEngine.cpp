@@ -11916,7 +11916,7 @@ bool UEngine::LoadMap( FWorldContext& WorldContext, FURL URL, class UPendingNetG
 	// Dump info
 
 	VerifyLoadMapWorldCleanup();
-	
+
 #endif
 
 	MALLOC_PROFILER( FMallocProfiler::SnapshotMemoryLoadMapMid( URL.Map ); )

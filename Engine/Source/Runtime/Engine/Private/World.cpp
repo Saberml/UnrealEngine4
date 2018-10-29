@@ -21,7 +21,7 @@
 #include "Misc/PackageName.h"
 #include "Serialization/AsyncLoading.h"
 #include "GameMapsSettings.h"
-#include "GeneralProjectSettings.h"
+#include "GeneralProjectSettings.h" // IMPROBABLE-CHANGE - Add include to check for Spatial networking flag
 #include "TimerManager.h"
 #include "Materials/MaterialInterface.h"
 #include "GameFramework/Controller.h"
