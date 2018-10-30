@@ -6342,7 +6342,7 @@ bool UWorld::ServerTravel(const FString& FURL, bool bAbsolute, bool bShouldSkipG
 				// IMPROBABLE-BEGIN Execute the SpatialProcessServerTravel if bound and if we are using spatial networking.
 				if (SpatialProcessServerTravelDelegate.IsBound() && GetDefault<UGeneralProjectSettings>()->bSpatialNetworking)
 				{
-					SpatialProcessServerTravelDelegate.ExecuteIfBound(FURL, bAbsolute, GameMode);
+					SpatialProcessServerTravelDelegate.Execute(FURL, bAbsolute, GameMode);
 				}
 				else
 				{
