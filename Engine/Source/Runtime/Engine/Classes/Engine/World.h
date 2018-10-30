@@ -3160,6 +3160,11 @@ public:
 
 #endif
 
+	// IMPROBABLE-BEGIN Added delegate for processing server travel for use with Spatial networking
+	DECLARE_DELEGATE_ThreeParams(ProcessServerTravelDelegate, const FString&, bool, AGameModeBase*);
+	ProcessServerTravelDelegate SpatialProcessServerTravelDelegate;
+	// IMPROBABLE-END
+
 	/**
 	 * Jumps the server to new level.  If bAbsolute is true and we are using seemless traveling, we
 	 * will do an absolute travel (URL will be flushed).

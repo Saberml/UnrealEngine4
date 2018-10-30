@@ -21,6 +21,7 @@
 #include "Misc/PackageName.h"
 #include "Serialization/AsyncLoading.h"
 #include "GameMapsSettings.h"
+#include "GeneralProjectSettings.h" // IMPROBABLE-CHANGE - Add include to check for Spatial networking flag
 #include "TimerManager.h"
 #include "Materials/MaterialInterface.h"
 #include "GameFramework/Controller.h"
@@ -6338,7 +6339,16 @@ bool UWorld::ServerTravel(const FString& FURL, bool bAbsolute, bool bShouldSkipG
 			// Skip notifying clients if requested
 			if (!bShouldSkipGameNotify)
 			{
-				GameMode->ProcessServerTravel(FURL, bAbsolute);
+				// IMPROBABLE-BEGIN Execute the SpatialProcessServerTravel if bound and if we are using spatial networking.
+				if (SpatialProcessServerTravelDelegate.IsBound() && GetDefault<UGeneralProjectSettings>()->bSpatialNetworking)
+				{
+					SpatialProcessServerTravelDelegate.Execute(FURL, bAbsolute, GameMode);
+				}
+				else
+				{
+					GameMode->ProcessServerTravel(FURL, bAbsolute);
+				}
+				// IMPROBABLE-END
 			}
 		}
 		else
