@@ -1703,6 +1703,7 @@ void ULevel::InitializeNetworkActors()
 
 	// IMPROBABLE-BEGIN - Deletion of Startup Actors
 	bool bUsingSpatialNetworking = GetDefault<UGeneralProjectSettings>()->bSpatialNetworking;
+	bool bForceGarbageCollection = false;
 	// IMPROBABLE-END
 
 	// Kill non relevant client actors and set net roles correctly
@@ -1766,6 +1767,7 @@ void ULevel::InitializeNetworkActors()
 				if (Actor->GetIsReplicated() && !Actor->IsPendingKill())
 				{
 					Actor->Destroy(true);
+					bForceGarbageCollection = true;
 				}
 			}
 			// IMPROBABLE-END
@@ -1773,6 +1775,18 @@ void ULevel::InitializeNetworkActors()
 			Actor->bActorSeamlessTraveled = false;
 		}
 	}
+
+	// IMPROBABLE-BEGIN - Deletion of Startup Actors
+	if (bUsingSpatialNetworking && bForceGarbageCollection
+		&& (OwningWorld->WorldType == EWorldType::PIE
+			|| OwningWorld->WorldType == EWorldType::Game
+			|| OwningWorld->WorldType == EWorldType::GamePreview))
+	{
+		// Force a GC to make sure the actors are actually removed and not reference-able by name.
+		GEngine->ForceGarbageCollection(true);
+		GEngine->PerformGarbageCollectionAndCleanupActors();
+	}
+	// IMPROBABLE-END
 }
 
 void ULevel::InitializeRenderingResources()
