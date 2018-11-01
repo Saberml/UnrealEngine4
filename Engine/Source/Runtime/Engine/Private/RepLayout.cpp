@@ -3970,6 +3970,8 @@ void FRepLayout::RebuildConditionalProperties( FRepState * RESTRICT	RepState, co
 
 	RepState->ConditionMap[COND_Custom] = true;
 
+	RepState->ConditionMap[COND_ServerOnly] = false; // IMPROBABLE-CHANGE - ServerOnly properties shouldn't replicate in native networking
+
 	RepState->RepFlags = RepFlags;
 }
 

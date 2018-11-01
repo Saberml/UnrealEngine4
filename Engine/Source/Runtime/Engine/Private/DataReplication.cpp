@@ -1129,6 +1129,7 @@ void FObjectReplicator::ReplicateCustomDeltaProperties( FNetBitWriter & Bunch, F
 	ConditionMap[COND_ReplayOrOwner] = bIsReplay || bIsOwner;
 	ConditionMap[COND_ReplayOnly] = bIsReplay;
 	ConditionMap[COND_SkipReplay] = !bIsReplay;
+	ConditionMap[COND_ServerOnly] = false; // IMPROBABLE-CHANGE - ServerOnly properties shouldn't replicate in native networking
 
 	// Make sure net field export group is registered
 	FNetFieldExportGroup* NetFieldExportGroup = OwningChannel->GetOrCreateNetFieldExportGroupForClassNetCache( Object );

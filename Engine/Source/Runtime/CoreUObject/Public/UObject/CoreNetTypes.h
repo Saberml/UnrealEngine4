@@ -22,8 +22,9 @@ enum ELifetimeCondition
 	COND_ReplayOnly = 10					UMETA(DisplayName = "Replay Only"),						// This property will only send to the replay connection
 	COND_SimulatedOnlyNoReplay = 11			UMETA(DisplayName = "Simulated Only No Replay"),		// This property will send to actors only, but not to replay connections
 	COND_SimulatedOrPhysicsNoReplay = 12	UMETA(DisplayName = "Simulated Or Physics No Replay"),	// This property will send to simulated Or bRepPhysics actors, but not to replay connections
-	COND_SkipReplay = 13					UMETA(DisplayName = "Skip Replay"),	// This property will not send to the replay connection
-	COND_Max = 14							UMETA(Hidden)
+	COND_SkipReplay = 13					UMETA(DisplayName = "Skip Replay"),						// This property will not send to the replay connection
+	COND_ServerOnly = 14					UMETA(DisplayName = "Server Only"),						// IMPROBABLE-CHANGE - This property will only be sent to the servers
+	COND_Max = 15							UMETA(Hidden)											// IMPROBABLE-CHANGE - Added a new lifetime condition
 };
 
 
