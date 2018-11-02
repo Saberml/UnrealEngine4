@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GeneralProjectSettings.h" // IMPROBABLE-CHANGE - Add include to check SpatialNetworking
 #include "UObject/ObjectMacros.h"
 #include "UObject/Object.h"
 #include "Layout/Margin.h"
@@ -377,7 +378,7 @@ public:
 
 	// IMPROBABLE-BEGIN - Added running of multiple dedicated servers in same process
 	void SetPlayNumberOfServers( const int32 InPlayNumberOfServers ) { PlayNumberOfServers = InPlayNumberOfServers; }
-	bool IsPlayNumberOfServersActive() const { return (PlayNetMode != PIE_Standalone) || RunUnderOneProcess; }
+	bool IsPlayNumberOfServersActive() const { return ((PlayNetMode != PIE_Standalone) || RunUnderOneProcess) && GetDefault<UGeneralProjectSettings>()->bSpatialNetworking; }
 	bool GetPlayNumberOfServers( int32 &OutPlayNumberOfServers ) const { OutPlayNumberOfServers = PlayNumberOfServers; return IsPlayNumberOfServersActive(); }
 	// IMPROBABLE-END
 
