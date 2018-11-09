@@ -1703,7 +1703,6 @@ void ULevel::InitializeNetworkActors()
 
 	// IMPROBABLE-BEGIN - Deletion of Startup Actors
 	bool bUsingSpatialNetworking = GetDefault<UGeneralProjectSettings>()->bSpatialNetworking;
-	bool bForceGarbageCollection = false;
 	// IMPROBABLE-END
 
 	// Kill non relevant client actors and set net roles correctly
@@ -1766,8 +1765,19 @@ void ULevel::InitializeNetworkActors()
 			{
 				if (Actor->GetIsReplicated() && !Actor->IsPendingKill())
 				{
+					const FString ObjectBaseName = FString::Printf(TEXT("DESTROYED_%s"), *Actor->GetName());
+					// We can only rename objects if we're not garbage collecting. We shouldn't be in GC at this point though.
+					if (!IsGarbageCollecting())
+					{
+						// Rename the actor so it's no longer addressable by name. This will prevent anyone from referencing this actor by name before it's been GC'ed.
+						Actor->Rename(*MakeUniqueObjectName(Actor->GetOuter(), Actor->GetClass(), *ObjectBaseName).ToString());
+					}
+					else
+					{
+						UE_LOG(LogLevel, Warning, TEXT("Failed to rename destroyed actor %s because we're garbage collecting. It might still be addressable by name."),
+							*Actor->GetFullName());
+					}
 					Actor->Destroy(true);
-					bForceGarbageCollection = true;
 				}
 			}
 			// IMPROBABLE-END
@@ -1775,18 +1785,6 @@ void ULevel::InitializeNetworkActors()
 			Actor->bActorSeamlessTraveled = false;
 		}
 	}
-
-	// IMPROBABLE-BEGIN - Deletion of Startup Actors
-	if (bUsingSpatialNetworking && bForceGarbageCollection
-		&& (OwningWorld->WorldType == EWorldType::PIE
-			|| OwningWorld->WorldType == EWorldType::Game
-			|| OwningWorld->WorldType == EWorldType::GamePreview))
-	{
-		// Force a GC to make sure the actors are actually removed and not reference-able by name.
-		GEngine->ForceGarbageCollection(true);
-		GEngine->PerformGarbageCollectionAndCleanupActors();
-	}
-	// IMPROBABLE-END
 }
 
 void ULevel::InitializeRenderingResources()
