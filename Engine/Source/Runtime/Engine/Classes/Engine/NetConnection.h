@@ -934,11 +934,13 @@ public:
 	 * Sets the PlayerOnlinePlatformName member.
 	 * Called by the engine during the login process with the NMT_Login message parameter.
 	 */
-	void SetPlayerOnlinePlatformName(const FName InPlayerOnlinePlatformName);
+	// IMPROBABLE-BEGIN - Export SetPlayerOnlinePlatformName
+	ENGINE_API void SetPlayerOnlinePlatformName(const FName InPlayerOnlinePlatformName);
+	// IMPROBABLE-END
 
 	/** Returns the online platform name for the player on this connection. Only valid for client connections on servers. */
 	ENGINE_API FName GetPlayerOnlinePlatformName() const { return PlayerOnlinePlatformName; }
-	
+
 	/**
 	 * Sets whether or not we should ignore bunches that would attempt to open channels that are already open.
 	 * Should only be used with InternalAck.
