@@ -20,7 +20,7 @@
 			"Name" : "ProxyLODMeshReduction",
 			"Type" : "Editor",
 			"LoadingPhase" : "Default",
-			 "BlacklistPlatforms": [ "Win64", "Linux" ]
+			 "WhitelistPlatforms": [ "Win64", "Linux" ]
 		}
 	]
 }
