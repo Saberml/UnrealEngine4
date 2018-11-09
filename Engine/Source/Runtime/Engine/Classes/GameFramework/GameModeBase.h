@@ -541,7 +541,7 @@ public:
 	 */
 	virtual APlayerController* ProcessClientTravel(FString& URL, FGuid NextMapGuid, bool bSeamless, bool bAbsolute);
 protected:
-	// IMRPOBABLE-END
+	// IMPROBABLE-END
 
 	/** Handles initializing a seamless travel player, handles logic similar to InitNewPlayer */
 	virtual void InitSeamlessTravelPlayer(AController* NewController);
