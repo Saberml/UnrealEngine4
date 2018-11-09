@@ -499,10 +499,8 @@ void AController::InitPlayerState()
 	// IMPROBABLE-BEGIN Prevent creating multiple PlayerStates when crossing a worker boundary.
 	if (GetDefault<UGeneralProjectSettings>()->bSpatialNetworking)
 	{
-		UWorld* World = GetWorld();
-		check(World);
-		UNetDriver* NetDriver = World->GetNetDriver();
-		
+		const UWorld* World = GetWorld();
+		const UNetDriver* NetDriver = World ? World->GetNetDriver() : nullptr;
 		if (NetDriver)
 		{
 			const FNetworkGUID NetGUID = NetDriver->GuidCache->GetNetGUID(this);
