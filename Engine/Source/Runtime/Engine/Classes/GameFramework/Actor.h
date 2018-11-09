@@ -1289,7 +1289,26 @@ protected:
 
 public:
 	// IMPROBABLE-BEGIN
-	virtual void OnSpatialAuthorityChange() {};  // Called when Spatial Position component changes authority
+	/** Event when SpatialOS authority is gained over the Position Component */
+	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName = "OnAuthorityGained", Catagory="Authority"))
+	void ReceiveAuthorityGained();
+
+	/** Called when SpatialOS authority is gained over the Position Component */
+	virtual void OnAuthorityGained() { ReceiveAuthorityGained(); }
+
+	/** Event when SpatialOS authority is lost over the Position Component */
+	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName = "OnAuthorityLost", Catagory="Authority"))
+	void ReceiveAuthorityLost();
+
+	/** Called when SpatialOS authority is lost over the Position Component */
+	virtual void OnAuthorityLost() { ReceiveAuthorityLost(); }
+
+	/** Event when SpatialOS authority is about to be lost over the Position Component */
+	UFUNCTION(BlueprintImplementableEvent, meta=(DisplayName = "OnAuthorityLossImminent", Catagory="Authority"))
+	void ReceiveAuthorityLossImminent();
+
+	/** Called when SpatialOS authority is about to be lost over the Position Component */
+	virtual void OnAuthorityLossImminent() { ReceiveAuthorityLossImminent(); }
 	// IMPROBABLE-END
 
 	/** Initiate a begin play call on this Actor, will handle calling in the correct order. */
