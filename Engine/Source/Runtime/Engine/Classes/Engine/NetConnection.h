@@ -934,7 +934,7 @@ public:
 	 * Sets the PlayerOnlinePlatformName member.
 	 * Called by the engine during the login process with the NMT_Login message parameter.
 	 */
-	void SetPlayerOnlinePlatformName(const FName InPlayerOnlinePlatformName);
+	ENGINE_API void SetPlayerOnlinePlatformName(const FName InPlayerOnlinePlatformName); // IMPROBABLE-CHANGE - Export SetPlayerOnlinePlatformName
 
 	/** Returns the online platform name for the player on this connection. Only valid for client connections on servers. */
 	ENGINE_API FName GetPlayerOnlinePlatformName() const { return PlayerOnlinePlatformName; }
